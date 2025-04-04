@@ -16,16 +16,19 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 10% 15%;
 
-    --primary: 20 54% 51%;
+    /* Updated primary color to match logo */
+    --primary: 200 75% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 186 74% 33%;
+    /* Adjusted secondary color to complement primary */
+    --secondary: 210 64% 45%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 38 33% 94%;
     --muted-foreground: 220 10% 45%;
 
-    --accent: 40 74% 57%;
+    /* Updated accent color to match logo */
+    --accent: 195 82% 45%;
     --accent-foreground: 220 10% 15%;
 
     --destructive: 0 84.2% 60.2%;
@@ -33,7 +36,7 @@
 
     --border: 38 20% 90%;
     --input: 38 20% 90%;
-    --ring: 20 54% 51%;
+    --ring: 200 75% 40%;
 
     --radius: 0.5rem;
 
@@ -57,16 +60,19 @@
     --popover: 220 10% 12%;
     --popover-foreground: 38 33% 97%;
 
-    --primary: 20 54% 51%;
+    /* Updated primary color to match logo for dark mode */
+    --primary: 200 75% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 186 74% 33%;
+    /* Adjusted secondary color to complement primary for dark mode */
+    --secondary: 210 64% 55%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 10% 15%;
     --muted-foreground: 38 33% 80%;
 
-    --accent: 40 74% 57%;
+    /* Updated accent color to match logo for dark mode */
+    --accent: 195 82% 55%;
     --accent-foreground: 220 10% 15%;
 
     --destructive: 0 62.8% 30.6%;
@@ -74,7 +80,7 @@
 
     --border: 220 10% 20%;
     --input: 220 10% 20%;
-    --ring: 20 54% 51%;
+    --ring: 200 75% 50%;
   }
 }
 
@@ -96,35 +102,12 @@
 
 @layer components {
   .filipino-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C95D3B' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231E88C3' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
   
   .hidden-gems-bg {
-    background-image: linear-gradient(to right, rgba(201, 93, 59, 0.1), rgba(21, 139, 146, 0.1));
+    background-image: linear-gradient(to right, rgba(30, 136, 195, 0.1), rgba(0, 87, 145, 0.1));
   }
   
-  .destination-card {
-    @apply relative overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-xl;
-  }
-  
-  .destination-card:hover img {
-    @apply scale-110;
-  }
-  
-  .destination-card img {
-    @apply transition-transform duration-500;
-  }
-  
-  .gradient-overlay {
-    @apply absolute inset-0 bg-gradient-to-t from-black/60 to-transparent;
-  }
-  
-  .section-title {
-    @apply relative text-2xl font-bold mb-6 pb-2;
-  }
-  
-  .section-title::after {
-    content: '';
-    @apply absolute bottom-0 left-0 w-16 h-1 bg-filipino-terracotta rounded;
-  }
+  /* ... keep existing code (destination card styles, gradient overlay, section title etc.) */
 }

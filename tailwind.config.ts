@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,16 +62,15 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Filipino-inspired color palette
 				filipino: {
-					terracotta: '#C95D3B',
-					ochre: '#DDA448',
-					teal: '#158B92',
-					yellow: '#FFD460',
-					sand: '#F2E9D8',
-					forest: '#2C5545',
-					coral: '#F27D52',
-					navy: '#293F56',
+					terracotta: '#1E88C3',
+					ochre: '#005791',
+					teal: '#00A7CA',
+					yellow: '#7DCFF5',
+					sand: '#E8F4FB',
+					forest: '#003B6F',
+					coral: '#4BAAE3',
+					navy: '#002D56',
 				}
 			},
 			borderRadius: {
