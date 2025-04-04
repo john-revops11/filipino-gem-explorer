@@ -22,7 +22,7 @@ const VideoBackground = ({ children }: VideoBackgroundProps) => {
         </video>
         
         {/* Enhanced overlay with gradient using new colors */}
-        <div className="absolute inset-0 bg-gradient-to-b from-filipino-forest/70 via-filipino-forest/40 to-filipino-forest/70 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-filipino-forest/80 via-filipino-forest/50 to-filipino-forest/80 z-10"></div>
         
         {/* Color accent borders */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-filipino-maroon via-filipino-goldenrod to-filipino-beige z-20"></div>

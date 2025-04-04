@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Card,
@@ -19,8 +18,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Calendar, MapPin, ArrowRight } from "lucide-react";
+import { Loader2, Calendar as CalendarIcon, MapPin, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
 
 interface ItineraryFormProps {
   destination: string;
@@ -29,6 +32,8 @@ interface ItineraryFormProps {
   setDays: (value: string) => void;
   preferences: string;
   setPreferences: (value: string) => void;
+  startDate: Date | undefined;
+  setStartDate: (date: Date | undefined) => void;
   onGenerate: () => void;
   isGenerating: boolean;
 }
@@ -40,6 +45,8 @@ export function ItineraryForm({
   setDays,
   preferences,
   setPreferences,
+  startDate,
+  setStartDate,
   onGenerate,
   isGenerating,
 }: ItineraryFormProps) {
@@ -63,7 +70,7 @@ export function ItineraryForm({
     <Card>
       <CardHeader>
         <CardTitle className="text-xl flex items-center">
-          <Calendar className="mr-2 h-5 w-5 text-filipino-teal" />
+          <CalendarIcon className="mr-2 h-5 w-5 text-filipino-teal" />
           AI Itinerary Generator
         </CardTitle>
         <CardDescription>
@@ -101,6 +108,39 @@ export function ItineraryForm({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Start Date (Optional)</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !startDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <div className="p-3 pointer-events-auto">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                  className="pointer-events-auto"
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
+          <p className="text-xs text-muted-foreground">
+            Select a date to plan your trip based on seasonal activities and weather
+          </p>
         </div>
 
         <div className="space-y-2">

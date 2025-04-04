@@ -6,6 +6,7 @@ import { ItineraryResult } from "@/components/ai/itinerary/ItineraryResult";
 import { AuthPrompt } from "@/components/auth/AuthPrompt";
 import { generateItinerary } from "@/services/gemini-api";
 import { toast } from "sonner";
+import { format, addDays } from "date-fns";
 
 interface EnhancedItineraryOptimizerProps {
   destination: string;
@@ -26,6 +27,7 @@ export function EnhancedItineraryOptimizer({
   const [currentDays, setCurrentDays] = useState(days);
   const [isSaving, setIsSaving] = useState(false);
   const [currentPreferences, setCurrentPreferences] = useState(initialItinerary);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 
   const handleGenerateItinerary = async () => {
     if (!user) {
@@ -36,11 +38,15 @@ export function EnhancedItineraryOptimizer({
     setIsGenerating(true);
     
     try {
+      // Format the date if it exists
+      const dateInfo = startDate ? `starting on ${format(startDate, 'MMMM d, yyyy')}` : '';
+      
       // Use the Gemini API to generate a detailed itinerary
       const formattedItinerary = await generateItinerary(
         currentDestination, 
         parseInt(currentDays) || 3, 
-        currentPreferences
+        currentPreferences,
+        dateInfo
       );
       
       setGeneratedItinerary(formattedItinerary);
@@ -62,6 +68,7 @@ export function EnhancedItineraryOptimizer({
 - Afternoon: Swimming and relaxation
 - Evening: Cultural show
 
+${startDate ? `\nTrip dates: ${format(startDate, 'MMMM d, yyyy')} to ${format(addDays(startDate, parseInt(currentDays)), 'MMMM d, yyyy')}` : ''}
 ${currentPreferences ? `\nTailored for preferences: ${currentPreferences}` : ''}
       `;
       setGeneratedItinerary(fallbackItinerary);
@@ -101,6 +108,8 @@ ${currentPreferences ? `\nTailored for preferences: ${currentPreferences}` : ''}
         setDays={handleDaysChange}
         preferences={currentPreferences}
         setPreferences={handlePreferencesChange}
+        startDate={startDate}
+        setStartDate={setStartDate}
         onGenerate={handleGenerateItinerary}
         isGenerating={isGenerating}
       />
