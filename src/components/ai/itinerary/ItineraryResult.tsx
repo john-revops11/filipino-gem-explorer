@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, Share2, Download, Bookmark, BookmarkCheck } from "lucide-react";
 import { toast } from "sonner";
-import databaseService from "@/services/database-service";
+import databaseService, { Itinerary } from "@/services/database-service";
 import { auth } from "@/services/firebase";
 
 interface ItineraryResultProps {
@@ -43,13 +43,24 @@ export function ItineraryResult({
         return;
       }
 
-      // Save the itinerary to Firebase
-      await databaseService.saveGeneratedItinerary(
-        destination,
-        days,
-        itineraryContent,
-        user.uid
-      );
+      // Create itinerary data object
+      const itineraryData: Itinerary = {
+        name: `${days}-Day Trip to ${destination}`,
+        description: `Personalized ${days}-day itinerary for ${destination}`,
+        days: parseInt(days),
+        location: {
+          name: destination
+        },
+        content: itineraryContent,
+        tags: ["Generated", "AI"],
+        created_by: user.uid,
+        is_public: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Save the itinerary using our database service
+      await databaseService.saveItinerary(itineraryData);
 
       // Update local state
       setIsSaved(true);

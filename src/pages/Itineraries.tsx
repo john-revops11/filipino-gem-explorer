@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -39,7 +40,7 @@ export default function Itineraries() {
       try {
         setIsLoading(true);
         
-        const publicItineraries = await databaseService.getPublicItineraries();
+        const publicItineraries = await databaseService.getAllItineraries();
         const availableLocations = await databaseService.getLocations();
         
         setItineraries(publicItineraries);
@@ -107,14 +108,14 @@ export default function Itineraries() {
         is_public: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        duration: diffDays.toString(),
-        destination: mainDestination,
-        image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
+        // Custom fields
+        destinations: selectedDestinations,
+        dateRange,
         status: 'planning',
-        dateRange
+        image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80"
       };
       
-      const itineraryId = await databaseService.saveItinerary(newItineraryObj);
+      const itineraryId = await databaseService.addItinerary(newItineraryObj);
       
       setItineraries([{...newItineraryObj, id: itineraryId}, ...itineraries]);
       
@@ -326,7 +327,7 @@ export default function Itineraries() {
                           title: itinerary.name,
                           dateRange: itinerary.dateRange || `${itinerary.days} days`,
                           days: itinerary.days,
-                          locations: [itinerary.destination || itinerary.location.name],
+                          locations: [itinerary.location?.name || (itinerary.destinations && itinerary.destinations[0]) || "Unknown"],
                           activities: 0,
                           coverImage: itinerary.image || "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
                           status: itinerary.status || 'planning'
@@ -348,7 +349,7 @@ export default function Itineraries() {
                             title: itinerary.name,
                             dateRange: itinerary.dateRange || `${itinerary.days} days`,
                             days: itinerary.days,
-                            locations: [itinerary.destination || itinerary.location.name],
+                            locations: [itinerary.location?.name || (itinerary.destinations && itinerary.destinations[0]) || "Unknown"],
                             activities: 0,
                             coverImage: itinerary.image || "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
                             status: itinerary.status || 'upcoming'
@@ -370,7 +371,7 @@ export default function Itineraries() {
                             title: itinerary.name,
                             dateRange: itinerary.dateRange || `${itinerary.days} days`,
                             days: itinerary.days,
-                            locations: [itinerary.destination || itinerary.location.name],
+                            locations: [itinerary.location?.name || (itinerary.destinations && itinerary.destinations[0]) || "Unknown"],
                             activities: 0,
                             coverImage: itinerary.image || "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
                             status: itinerary.status || 'planning'

@@ -63,10 +63,7 @@ export default function EnhancedItineraryOptimizer() {
         description: `Personalized ${days}-day itinerary for ${destination} with preferences: ${preferences}`,
         days: parseInt(days), // Converting days string to number
         location: {
-          name: destination, // Adding name property
-          region_id: "placeholder-region", 
-          province_id: "placeholder-province",
-          city_id: "placeholder-city"
+          name: destination // Using only the required name property
         },
         tags: preferences.split(',').map(pref => pref.trim()), 
         content: generatedItinerary,

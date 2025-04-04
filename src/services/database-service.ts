@@ -867,10 +867,10 @@ const databaseService = {
     }
   },
   
-  saveGeneratedItinerary: async (itinerary: Itinerary): Promise<string> => {
+  saveGeneratedItinerary: async (itineraryData: Itinerary): Promise<string> => {
     try {
       // This is an alias for saveItinerary for better semantic meaning
-      return await databaseService.saveItinerary(itinerary);
+      return await databaseService.saveItinerary(itineraryData);
     } catch (error) {
       console.error('Error saving generated itinerary:', error);
       throw error;
