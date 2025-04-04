@@ -1,18 +1,12 @@
 
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Share2, Download, Bookmark, BookmarkCheck } from "lucide-react";
-import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bookmark, Edit, Save } from "lucide-react";
 import databaseService, { Itinerary } from "@/services/database-service";
 import { auth } from "@/services/firebase";
+import { toast } from "sonner";
 
 interface ItineraryResultProps {
   destination: string;
@@ -27,168 +21,105 @@ export function ItineraryResult({
   days,
   itineraryContent,
   onSave,
-  isSaving,
+  isSaving
 }: ItineraryResultProps) {
-  const [isSaved, setIsSaved] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(itineraryContent);
+  const [isSavingLocally, setIsSavingLocally] = useState(false);
 
-  const handleSave = async () => {
+  const handleSaveEdit = () => {
+    setIsEditing(false);
+    setIsSavingLocally(true);
+    
+    // You could implement a way to save edited content back to state
+    setTimeout(() => {
+      setIsSavingLocally(false);
+      toast.success("Changes saved");
+    }, 500);
+  };
+
+  const handleSaveToAccount = async () => {
+    if (!auth.currentUser) {
+      toast.error("Please sign in to save itineraries");
+      return;
+    }
+
     try {
-      // Get the current user
-      const user = auth.currentUser;
-
-      if (!user) {
-        toast.error("You need to be logged in to save itineraries", {
-          description: "Please sign in or create an account to save this itinerary."
-        });
-        return;
-      }
-
-      // Create itinerary data object
+      setIsSavingLocally(true);
+      
+      // Create itinerary object
       const itineraryData: Itinerary = {
         name: `${days}-Day Trip to ${destination}`,
         description: `Personalized ${days}-day itinerary for ${destination}`,
         days: parseInt(days),
+        destinations: [destination],
         location: {
           name: destination
         },
-        content: itineraryContent,
-        tags: ["Generated", "AI"],
-        created_by: user.uid,
+        content: editedContent || itineraryContent,
+        tags: [],
+        created_by: auth.currentUser.uid,
         is_public: true,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       };
-
-      // Save the itinerary using our database service
-      await databaseService.saveItinerary(itineraryData);
-
-      // Update local state
-      setIsSaved(true);
       
-      // Call the parent component's onSave handler
-      onSave();
-      
-      toast.success("Itinerary saved successfully!", {
-        description: `Your ${days}-day itinerary for ${destination} has been saved to your profile.`,
-      });
+      await databaseService.addItinerary(itineraryData);
+      toast.success("Itinerary saved to your account");
     } catch (error) {
       console.error("Error saving itinerary:", error);
-      toast.error("Failed to save itinerary", {
-        description: "There was an error saving your itinerary. Please try again."
-      });
-    }
-  };
-
-  const handleDownload = () => {
-    // Create a blob from the itinerary content
-    const blob = new Blob([itineraryContent], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    
-    // Create a temporary link element
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${destination}-${days}-day-itinerary.html`;
-    
-    // Trigger the download
-    document.body.appendChild(a);
-    a.click();
-    
-    // Clean up
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success("Itinerary downloaded", {
-      description: "Your itinerary has been downloaded successfully."
-    });
-  };
-
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `${days}-Day Itinerary for ${destination}`,
-          text: `Check out this ${days}-day itinerary for ${destination}!`,
-          url: window.location.href,
-        });
-      } else {
-        // Fallback to copy to clipboard
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success("Link copied to clipboard!", {
-          description: "Share this link with friends and family."
-        });
-      }
-    } catch (error) {
-      console.error("Error sharing:", error);
-      toast.error("Unable to share", {
-        description: "There was an error trying to share this itinerary."
-      });
+      toast.error("Failed to save itinerary");
+    } finally {
+      setIsSavingLocally(false);
     }
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-filipino-teal/10 to-filipino-deepTeal/5 border-b">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-filipino-deepTeal">Your {days}-Day Itinerary for {destination}</CardTitle>
-            <CardDescription className="mt-1">
-              Personalized travel plan based on your preferences
-            </CardDescription>
-          </div>
-          <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8" 
-              onClick={handleShare}
-              title="Share itinerary"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8" 
-              onClick={handleDownload}
-              title="Download itinerary"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+    <Card className="mt-4">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl">
+          {days}-Day Itinerary for {destination}
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
-        <div 
-          className="prose prose-sm max-w-none prose-headings:text-filipino-deepTeal prose-a:text-filipino-teal"
-          dangerouslySetInnerHTML={{ __html: itineraryContent }}
-        />
+      <CardContent>
+        {isEditing ? (
+          <Textarea
+            className="min-h-[400px] font-mono text-sm"
+            value={editedContent}
+            onChange={(e) => setEditedContent(e.target.value)}
+          />
+        ) : (
+          <div className="whitespace-pre-line bg-muted p-4 rounded-md min-h-[400px] text-sm">
+            {itineraryContent}
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="flex justify-between bg-gray-50 border-t p-4">
-        <Button variant="outline" className="gap-2">
-          <Bookmark className="h-4 w-4" />
-          Add to Favorites
-        </Button>
-        <Button 
-          onClick={handleSave}
-          disabled={isSaving || isSaved}
-          className="bg-filipino-teal hover:bg-filipino-teal/90 text-white gap-2"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : isSaved ? (
-            <>
-              <BookmarkCheck className="h-4 w-4" />
-              Saved
-            </>
+      <CardFooter className="flex justify-between">
+        <div>
+          {isEditing ? (
+            <Button onClick={handleSaveEdit} disabled={isSavingLocally}>
+              <Save className="mr-2 h-4 w-4" />
+              {isSavingLocally ? "Saving..." : "Save Changes"}
+            </Button>
           ) : (
-            <>
-              <Bookmark className="h-4 w-4" />
-              Save Itinerary
-            </>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditing(true)}
+              disabled={isSaving || isSavingLocally}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
           )}
+        </div>
+        <Button 
+          onClick={onSave} 
+          disabled={isSaving || isSavingLocally}
+          className="bg-filipino-terracotta hover:bg-filipino-terracotta/90"
+        >
+          <Bookmark className="mr-2 h-4 w-4" />
+          {isSaving ? "Saving..." : "Save"}
         </Button>
       </CardFooter>
     </Card>

@@ -61,20 +61,22 @@ export default function EnhancedItineraryOptimizer() {
       const itineraryData: Itinerary = {
         name: `${days}-Day Trip to ${destination}`,
         description: `Personalized ${days}-day itinerary for ${destination} with preferences: ${preferences}`,
-        days: parseInt(days), // Converting days string to number
+        days: parseInt(days),
+        destinations: [destination],
         location: {
-          name: destination // Using only the required name property
+          name: destination
         },
         tags: preferences.split(',').map(pref => pref.trim()), 
         content: generatedItinerary,
         created_by: auth.currentUser?.uid || "anonymous-user",
         is_public: true,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        createdAt: new Date().toISOString()
       };
 
       // Save the itinerary using our database service
-      await databaseService.saveItinerary(itineraryData);
+      await databaseService.addItinerary(itineraryData);
 
       toast({
         title: "Itinerary saved",

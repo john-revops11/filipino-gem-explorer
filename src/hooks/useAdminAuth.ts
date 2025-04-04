@@ -2,13 +2,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "@/services/firebase";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from "firebase/auth";
 import { toast } from "sonner";
 
 export function useAdminAuth() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function useAdminAuth() {
         // Only redirect if they're trying to access the admin section
         if (window.location.pathname.startsWith('/admin')) {
           toast.error("You must be logged in to access the admin dashboard");
-          navigate("/");
+          navigate("/admin/login");
         }
       }
       
@@ -70,8 +70,16 @@ export function useAdminAuth() {
     try {
       setIsLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Logged in successfully");
-      return true;
+      
+      // Check if the logged in user is an admin
+      if (email === "admin@example.com") {
+        toast.success("Logged in as admin successfully");
+        return true;
+      } else {
+        toast.error("This account does not have admin privileges");
+        await signOut(auth);
+        return false;
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "Failed to log in");
@@ -86,7 +94,7 @@ export function useAdminAuth() {
     try {
       await signOut(auth);
       toast.success("Logged out successfully");
-      navigate("/");
+      navigate("/admin/login");
       return true;
     } catch (error: any) {
       console.error("Logout error:", error);

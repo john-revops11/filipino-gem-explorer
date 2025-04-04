@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -96,9 +95,10 @@ export default function Itineraries() {
       const content = await databaseService.generateItinerary(mainDestination, diffDays, newItinerary.notes || "balanced itinerary");
       
       const newItineraryObj: Itinerary = {
-        name: newItinerary.title,
-        description: `${diffDays}-day trip to ${mainDestination}${selectedDestinations.length > 1 ? ' and other destinations' : ''}`,
+        name: `${diffDays}-Day Trip to ${mainDestination}`,
+        description: `Generated itinerary for ${mainDestination}`,
         days: diffDays,
+        destinations: [mainDestination],
         location: {
           name: mainDestination
         },
@@ -108,8 +108,7 @@ export default function Itineraries() {
         is_public: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        // Custom fields
-        destinations: selectedDestinations,
+        createdAt: new Date().toISOString(),
         dateRange,
         status: 'planning',
         image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80"

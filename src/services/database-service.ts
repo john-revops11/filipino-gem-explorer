@@ -1,4 +1,3 @@
-
 import { auth, firestore, storage } from '@/services/firebase';
 import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -889,6 +888,10 @@ const databaseService = {
       throw error;
     }
   },
+};
+
+export const getRandomId = (): string => {
+  return Math.floor(Math.random() * 10000000).toString();
 };
 
 export default databaseService;
