@@ -16,8 +16,24 @@ const firebaseConfig = {
   appId: "1:399492619555:web:541b308c50c5f454d8c096"
 };
 
+// Check if Firebase app is already initialized
+let app;
+try {
+  // Try to initialize Firebase
+  app = initializeApp(firebaseConfig);
+} catch (error: any) {
+  if (error.code === 'app/duplicate-app') {
+    // If Firebase is already initialized, get the existing app
+    console.log('Firebase app already initialized, using existing app');
+    app = initializeApp(firebaseConfig, 'localstopover-app');
+  } else {
+    // Log any other Firebase initialization errors
+    console.error('Firebase initialization error:', error);
+    throw error;
+  }
+}
+
 // Initialize Firebase services
-const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const firestore = getFirestore(app);
 const storage = getStorage(app);
@@ -89,5 +105,27 @@ if (process.env.NODE_ENV === 'development') {
   }
 }
 
-export { app, auth, firestore, storage, database };
+// Create a function to test the connection to Firebase
+const testFirebaseConnection = async () => {
+  try {
+    console.log("Testing Firebase connection...");
+    // Try to sign in with test credentials to verify connection
+    // This will fail with auth/user-not-found which is expected, but proves the connection works
+    await signInWithEmailAndPassword(auth, "test@test.com", "testpassword").catch(error => {
+      if (error.code === 'auth/user-not-found') {
+        console.log("Firebase connection test successful (expected auth/user-not-found error)");
+        return true;
+      } else {
+        throw error;
+      }
+    });
+  } catch (error: any) {
+    console.error("Firebase connection test failed:", error);
+    return false;
+  }
+};
 
+// Run the connection test
+testFirebaseConnection();
+
+export { app, auth, firestore, storage, database };

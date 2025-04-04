@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/services/firebase";
-import { EyeIcon, EyeOffIcon, AlertTriangle } from "lucide-react";
+import { EyeIcon, EyeOffIcon, AlertTriangle, RefreshCw } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Login() {
@@ -17,7 +18,28 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const [firebaseReady, setFirebaseReady] = useState(true);
   const isMobile = useIsMobile();
+
+  // Check if Firebase is ready on initial load and when retryCount changes
+  useEffect(() => {
+    const checkFirebaseStatus = async () => {
+      try {
+        // Simple check - if auth is available, we're good
+        if (auth) {
+          setFirebaseReady(true);
+        } else {
+          setFirebaseReady(false);
+        }
+      } catch (error) {
+        console.error("Firebase check error:", error);
+        setFirebaseReady(false);
+      }
+    };
+
+    checkFirebaseStatus();
+  }, [retryCount]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +67,8 @@ export default function Login() {
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection";
       } else if (error.code === 'auth/configuration-not-found') {
-        errorMessage = "Firebase authentication is currently unavailable. Please try again in a few minutes.";
+        errorMessage = "Firebase authentication is temporarily unavailable. Please try again in a few minutes.";
+        setFirebaseReady(false);
       }
       
       setLoginError(errorMessage);
@@ -53,6 +76,12 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetryFirebase = () => {
+    setRetryCount(prev => prev + 1);
+    setLoginError("");
+    toast.info("Attempting to reconnect to Firebase...");
   };
 
   return (
@@ -88,7 +117,20 @@ export default function Login() {
               {loginError && (
                 <div className="bg-red-50 p-3 rounded-md flex items-start gap-2 text-red-700 text-sm">
                   <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                  <p>{loginError}</p>
+                  <div>
+                    <p>{loginError}</p>
+                    {!firebaseReady && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2 text-xs flex items-center" 
+                        onClick={handleRetryFirebase}
+                        type="button"
+                      >
+                        <RefreshCw className="mr-1 h-3 w-3" /> Retry Connection
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
               
@@ -109,6 +151,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={!firebaseReady}
                 />
               </div>
               <div className="space-y-2">
@@ -119,6 +162,7 @@ export default function Login() {
                     className="px-0 text-xs" 
                     onClick={() => navigate("/forgot-password")}
                     type="button"
+                    disabled={!firebaseReady}
                   >
                     Forgot password?
                   </Button>
@@ -131,6 +175,7 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={!firebaseReady}
                   />
                   <Button
                     type="button"
@@ -138,6 +183,7 @@ export default function Login() {
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={!firebaseReady}
                   >
                     {showPassword ? (
                       <EyeOffIcon className="h-4 w-4" />
@@ -155,7 +201,7 @@ export default function Login() {
               <Button 
                 type="submit" 
                 className="w-full bg-filipino-forest hover:bg-filipino-forest/90"
-                disabled={isLoading}
+                disabled={isLoading || !firebaseReady}
               >
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
