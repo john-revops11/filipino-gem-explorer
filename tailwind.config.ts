@@ -64,18 +64,23 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				filipino: {
-					terracotta: '#FF5722', // More vibrant orange-red
-					ochre: '#F44336', // Brighter red
-					teal: '#00BCD4', // Brighter teal
-					yellow: '#FFC400', // More vibrant yellow
-					sand: '#FFFFFF', // Changed to white (was warm light yellow)
-					forest: '#76FF03', // More vibrant green
-					coral: '#FF3D00', // More vibrant coral
-					navy: '#3D5AFE', // More vibrant indigo
-					red: '#D50000', // Brighter red
-					purple: '#7C4DFF', // More vibrant purple
-					pink: '#FF00FF', // Brighter magenta pink
-					orange: '#FF6D00', // Brighter orange
+					warmOchre: '#C19A6B', // New color - Warm Ochre
+					deepTeal: '#008080',  // New color - Deep Teal
+					lightBeige: '#F5F5DC', // New color - Light Beige
+					darkGray: '#333333',  // New color - Dark Gray
+					sunnyYellow: '#FFD700', // New color - Sunny Yellow
+					terracotta: '#FF5722', // Keep existing vibrant color
+					ochre: '#F44336',     // Keep existing vibrant color
+					teal: '#00BCD4',      // Keep existing vibrant color
+					yellow: '#FFC400',    // Keep existing vibrant color
+					sand: '#FFFFFF',      // Keep white
+					forest: '#76FF03',    // Keep existing vibrant color
+					coral: '#FF3D00',     // Keep existing vibrant color
+					navy: '#3D5AFE',      // Keep existing vibrant color
+					red: '#D50000',       // Keep existing vibrant color
+					purple: '#7C4DFF',    // Keep existing vibrant color
+					pink: '#FF00FF',      // Keep existing vibrant color
+					orange: '#FF6D00',    // Keep existing vibrant color
 				}
 			},
 			borderRadius: {
