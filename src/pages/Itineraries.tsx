@@ -1,11 +1,13 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  PlusCircle, Search, Filter, CalendarDays, MapPin, 
-  Clock, ChevronDown, Users, X, Loader2, Check, Trash2
+  PlusCircle, Search, Filter, MapPin, 
+  Clock, ChevronDown, Users, X, Loader2, Check, Trash2,
+  CalendarDays
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +20,7 @@ import databaseService, { Itinerary, Location } from "@/services/database-servic
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth"; // Correct import for useAuth
 import { Link, useNavigate } from "react-router-dom";
 import { ItineraryCard } from "@/components/itinerary/ItineraryCard";
 import { EmptyState } from "@/components/shared/EmptyState";

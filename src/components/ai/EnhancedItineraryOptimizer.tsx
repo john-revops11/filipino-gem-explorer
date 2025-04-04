@@ -12,8 +12,8 @@ import { answerTravelQuestion } from "@/services/gemini-api";
 
 interface EnhancedItineraryOptimizerProps {
   destination: string;
-  days: string;
-  initialItinerary: string;
+  days: string; // Changed from number to string to match expected type
+  initialItinerary: string; // Changed from array to string
 }
 
 export function EnhancedItineraryOptimizer({
