@@ -88,25 +88,20 @@ export const firestoreService = {
   
   // Add a new document
   addDocument: async (collectionName: string, data: DocumentData) => {
-    // Convert the DocumentData to a plain JavaScript object to ensure it's safe to spread
+    // Create a plain JavaScript object to store the data
     const plainData: Record<string, any> = {};
     
-    if (data) {
-      // Cast to any to work with it as a plain object
-      const dataAsObj = data as any;
-      
-      // Only process if it's actually an object
-      if (typeof dataAsObj === 'object' && dataAsObj !== null) {
-        // Copy all properties manually
-        for (const key in dataAsObj) {
-          if (Object.prototype.hasOwnProperty.call(dataAsObj, key)) {
-            plainData[key] = dataAsObj[key];
-          }
+    // Only try to extract properties if data is an object
+    if (data && typeof data === 'object' && data !== null) {
+      // Safely copy properties from data to plainData
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          plainData[key] = data[key];
         }
       }
     }
     
-    // Add the document with plain object and timestamps
+    // Add the document with the plain data object and timestamps
     const docRef = await addDoc(collection(firestore, collectionName), {
       ...plainData,
       createdAt: serverTimestamp(),
@@ -118,20 +113,15 @@ export const firestoreService = {
   
   // Update an existing document
   updateDocument: async (collectionName: string, docId: string, data: DocumentData) => {
-    // Convert the DocumentData to a plain JavaScript object to ensure it's safe to spread
+    // Create a plain JavaScript object to store the data
     const plainData: Record<string, any> = {};
     
-    if (data) {
-      // Cast to any to work with it as a plain object
-      const dataAsObj = data as any;
-      
-      // Only process if it's actually an object
-      if (typeof dataAsObj === 'object' && dataAsObj !== null) {
-        // Copy all properties manually
-        for (const key in dataAsObj) {
-          if (Object.prototype.hasOwnProperty.call(dataAsObj, key)) {
-            plainData[key] = dataAsObj[key];
-          }
+    // Only try to extract properties if data is an object
+    if (data && typeof data === 'object' && data !== null) {
+      // Safely copy properties from data to plainData
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          plainData[key] = data[key];
         }
       }
     }
@@ -178,17 +168,15 @@ export const realtimeDbService = {
   
   // Push new data to a list
   pushData: async (path: string, data: any) => {
-    // Convert to a plain JavaScript object to ensure it's safe to spread
+    // Create a plain JavaScript object to store the data
     const plainData: Record<string, any> = {};
     
-    if (data) {
-      // Only process if it's actually an object
-      if (typeof data === 'object' && data !== null) {
-        // Copy all properties manually
-        for (const key in data) {
-          if (Object.prototype.hasOwnProperty.call(data, key)) {
-            plainData[key] = data[key];
-          }
+    // Only try to extract properties if data is an object
+    if (data && typeof data === 'object' && data !== null) {
+      // Safely copy properties from data to plainData
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          plainData[key] = data[key];
         }
       }
     }
