@@ -1,7 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { Building, Hotel, MapPin, Gem, Store } from "lucide-react";
+import { Building, Hotel, MapPin } from "lucide-react";
 import { Place } from "@/services/database-service";
 
 type PlaceCardProps = {
@@ -14,8 +14,6 @@ type PlaceCardProps = {
   price_range?: string;
   size?: "sm" | "md" | "lg";
   linkTo?: string;
-  is_hidden_gem?: boolean;
-  is_local_business?: boolean;
 };
 
 export function PlaceCard({
@@ -28,8 +26,6 @@ export function PlaceCard({
   price_range,
   size = "md",
   linkTo,
-  is_hidden_gem,
-  is_local_business,
 }: PlaceCardProps) {
   const sizeClasses = {
     sm: "h-40",
@@ -59,25 +55,11 @@ export function PlaceCard({
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
       
-      <div className="absolute top-2 left-2 flex flex-col gap-1">
+      <div className="absolute top-2 left-2">
         <Badge className="bg-filipino-teal/70 text-white flex items-center gap-1 uppercase text-xs">
           {getIcon()}
           {type.replace("_", " ")}
         </Badge>
-        
-        {is_hidden_gem && (
-          <Badge className="bg-filipino-vibrantGreen/70 text-white flex items-center gap-1 uppercase text-xs">
-            <Gem className="h-4 w-4 text-white" />
-            Hidden Gem
-          </Badge>
-        )}
-        
-        {is_local_business && (
-          <Badge className="bg-filipino-terracotta/70 text-white flex items-center gap-1 uppercase text-xs">
-            <Store className="h-4 w-4 text-white" />
-            Local Business
-          </Badge>
-        )}
       </div>
       
       <div className="absolute bottom-0 left-0 p-4 text-white">
