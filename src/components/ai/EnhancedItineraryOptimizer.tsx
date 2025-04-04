@@ -58,6 +58,8 @@ export default function EnhancedItineraryOptimizer() {
     setIsSaving(true);
     try {
       // Create itinerary data object based on our database structure
+      const currentTime = new Date().toISOString();
+      
       const itineraryData: Itinerary = {
         name: `${days}-Day Trip to ${destination}`,
         description: `Personalized ${days}-day itinerary for ${destination} with preferences: ${preferences}`,
@@ -70,9 +72,9 @@ export default function EnhancedItineraryOptimizer() {
         content: generatedItinerary,
         created_by: auth.currentUser?.uid || "anonymous-user",
         is_public: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        createdAt: new Date().toISOString()
+        created_at: currentTime,
+        updated_at: currentTime,
+        createdAt: currentTime
       };
 
       // Save the itinerary using our database service

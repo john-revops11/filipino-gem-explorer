@@ -94,6 +94,8 @@ export default function Itineraries() {
       
       const content = await databaseService.generateItinerary(mainDestination, diffDays, newItinerary.notes || "balanced itinerary");
       
+      const currentTime = new Date().toISOString();
+      
       const newItineraryObj: Itinerary = {
         name: `${diffDays}-Day Trip to ${mainDestination}`,
         description: `Generated itinerary for ${mainDestination}`,
@@ -106,9 +108,9 @@ export default function Itineraries() {
         content: content,
         created_by: "current-user",
         is_public: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
+        created_at: currentTime,
+        updated_at: currentTime,
+        createdAt: currentTime,
         dateRange,
         status: 'planning',
         image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80"

@@ -47,6 +47,8 @@ export function ItineraryResult({
     try {
       setIsSavingLocally(true);
       
+      const currentTime = new Date().toISOString();
+      
       // Create itinerary object
       const itineraryData: Itinerary = {
         name: `${days}-Day Trip to ${destination}`,
@@ -60,9 +62,9 @@ export function ItineraryResult({
         tags: [],
         created_by: auth.currentUser.uid,
         is_public: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        createdAt: new Date().toISOString()
+        created_at: currentTime,
+        updated_at: currentTime,
+        createdAt: currentTime
       };
       
       await databaseService.addItinerary(itineraryData);
