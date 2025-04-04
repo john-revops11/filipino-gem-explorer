@@ -88,10 +88,11 @@ export const firestoreService = {
   
   // Add a new document
   addDocument: async (collectionName: string, data: DocumentData) => {
-    // Convert DocumentData to a plain object that can be safely spread
-    const plainData = Object.fromEntries(
-      Object.entries(data as Record<string, any>)
-    );
+    // Using a safer approach to create a plain object
+    const plainData: Record<string, any> = {};
+    Object.keys(data as Record<string, any>).forEach(key => {
+      plainData[key] = (data as Record<string, any>)[key];
+    });
     
     const docRef = await addDoc(collection(firestore, collectionName), {
       ...plainData,
@@ -104,10 +105,11 @@ export const firestoreService = {
   
   // Update an existing document
   updateDocument: async (collectionName: string, docId: string, data: DocumentData) => {
-    // Convert DocumentData to a plain object that can be safely spread
-    const plainData = Object.fromEntries(
-      Object.entries(data as Record<string, any>)
-    );
+    // Using a safer approach to create a plain object
+    const plainData: Record<string, any> = {};
+    Object.keys(data as Record<string, any>).forEach(key => {
+      plainData[key] = (data as Record<string, any>)[key];
+    });
     
     const docRef = doc(firestore, collectionName, docId);
     
@@ -151,10 +153,13 @@ export const realtimeDbService = {
   
   // Push new data to a list
   pushData: async (path: string, data: any) => {
-    // Convert to a plain object that can be safely spread
-    const plainData = Object.fromEntries(
-      Object.entries(data as Record<string, any>)
-    );
+    // Using a safer approach to create a plain object
+    const plainData: Record<string, any> = {};
+    if (data && typeof data === 'object') {
+      Object.keys(data).forEach(key => {
+        plainData[key] = data[key];
+      });
+    }
     
     const listRef = ref(database, path);
     const newItemRef = push(listRef);
