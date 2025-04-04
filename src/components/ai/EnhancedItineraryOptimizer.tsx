@@ -20,12 +20,19 @@ export function EnhancedItineraryOptimizer({
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [generatedItinerary, setGeneratedItinerary] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [currentDestination, setCurrentDestination] = useState(destination);
+  const [currentDays, setCurrentDays] = useState(days);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleGenerateItinerary = (destination: string, days: number, preferences: string) => {
     if (!user) {
       setShowAuthPrompt(true);
       return;
     }
+    
+    // Update current state
+    setCurrentDestination(destination);
+    setCurrentDays(days.toString());
     
     // Normal itinerary generation logic...
     setIsGenerating(true);
@@ -51,6 +58,14 @@ ${preferences ? `\nTailored for preferences: ${preferences}` : ''}
     }, 2000);
   };
 
+  const handleSaveItinerary = () => {
+    setIsSaving(true);
+    // Simulate saving
+    setTimeout(() => {
+      setIsSaving(false);
+    }, 1000);
+  };
+
   return (
     <div className="w-full">
       <ItineraryForm
@@ -62,7 +77,13 @@ ${preferences ? `\nTailored for preferences: ${preferences}` : ''}
       />
       
       {generatedItinerary && (
-        <ItineraryResult itinerary={generatedItinerary} />
+        <ItineraryResult
+          destination={currentDestination}
+          days={currentDays}
+          itineraryContent={generatedItinerary}
+          onSave={handleSaveItinerary}
+          isSaving={isSaving}
+        />
       )}
       
       <AuthPrompt
