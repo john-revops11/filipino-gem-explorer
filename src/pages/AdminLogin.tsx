@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Shield, EyeIcon, EyeOffIcon } from "lucide-react";
+import { Shield, EyeIcon, EyeOffIcon, AlertTriangle } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -17,10 +17,12 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const isMobile = useIsMobile();
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError("");
     setIsLoading(true);
 
     try {
@@ -30,7 +32,7 @@ export default function AdminLogin() {
       }
     } catch (error: any) {
       console.error("Admin login error:", error);
-      toast.error(error.message || "Failed to log in as admin");
+      setLoginError(error.message || "Failed to log in as admin");
     } finally {
       setIsLoading(false);
     }
@@ -64,6 +66,20 @@ export default function AdminLogin() {
           </CardHeader>
           <form onSubmit={handleAdminLogin}>
             <CardContent className="space-y-4">
+              {loginError && (
+                <div className="bg-red-50 p-3 rounded-md flex items-start gap-2 text-red-700 text-sm">
+                  <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <p>{loginError}</p>
+                </div>
+              )}
+              
+              {process.env.NODE_ENV === 'development' && (
+                <div className="bg-blue-50 p-3 rounded-md text-blue-700 text-sm">
+                  <p className="font-semibold">Development Mode</p>
+                  <p>Admin user: admin@example.com / admin123</p>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="admin-email">Email</Label>
                 <Input

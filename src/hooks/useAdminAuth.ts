@@ -52,7 +52,8 @@ export function useAdminAuth() {
         setIsAdmin(false);
         
         // Only redirect if they're trying to access the admin section
-        if (window.location.pathname.startsWith('/admin')) {
+        if (window.location.pathname.startsWith('/admin') && 
+            window.location.pathname !== '/admin/login') {
           toast.error("You must be logged in to access the admin dashboard");
           navigate("/admin/login");
         }
@@ -82,7 +83,22 @@ export function useAdminAuth() {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "Failed to log in");
+      let errorMessage = "Failed to log in";
+      
+      // Handle specific Firebase error codes
+      if (error.code === 'auth/invalid-credential' || 
+          error.code === 'auth/user-not-found' || 
+          error.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed login attempts. Please try again later";
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection";
+      } else if (error.code === 'auth/configuration-not-found') {
+        errorMessage = "Authentication service unavailable. Please try again later";
+      }
+      
+      toast.error(errorMessage);
       return false;
     } finally {
       setIsLoading(false);
