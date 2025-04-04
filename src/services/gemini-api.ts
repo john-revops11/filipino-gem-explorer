@@ -2,8 +2,8 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 // Note: In a production app, you would store this in environment variables
-// The API key below is a placeholder and should be replaced with your actual API key
-const API_KEY = "YOUR_GEMINI_API_KEY"; 
+// The API key below will be accessible to frontend users - use with caution
+const API_KEY = "AIzaSyCJIDNvI7w8jpjyWLI9yaPp3PWAeD95AnA";
 
 // Initialize the Gemini API client
 const genAI = new GoogleGenerativeAI(API_KEY);

@@ -88,11 +88,11 @@ export const firestoreService = {
   
   // Add a new document
   addDocument: async (collectionName: string, data: DocumentData) => {
-    // Create a plain object from the data to safely spread
-    const dataObject = Object.assign({}, data);
+    // Create a plain object from the data
+    const plainData = Object.assign({}, data) as Record<string, any>;
     
     const docRef = await addDoc(collection(firestore, collectionName), {
-      ...dataObject,
+      ...plainData,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
@@ -102,13 +102,13 @@ export const firestoreService = {
   
   // Update an existing document
   updateDocument: async (collectionName: string, docId: string, data: DocumentData) => {
-    // Create a plain object from the data to safely spread
-    const dataObject = Object.assign({}, data);
+    // Create a plain object from the data
+    const plainData = Object.assign({}, data) as Record<string, any>;
     
     const docRef = doc(firestore, collectionName, docId);
     
     await updateDoc(docRef, {
-      ...dataObject,
+      ...plainData,
       updatedAt: serverTimestamp()
     });
     
@@ -147,14 +147,14 @@ export const realtimeDbService = {
   
   // Push new data to a list
   pushData: async (path: string, data: any) => {
-    // Create a plain object from the data to safely spread
-    const dataObject = Object.assign({}, data);
+    // Create a plain object from the data
+    const plainData = Object.assign({}, data) as Record<string, any>;
     
     const listRef = ref(database, path);
     const newItemRef = push(listRef);
     
     await set(newItemRef, {
-      ...dataObject,
+      ...plainData,
       timestamp: Date.now()
     });
     
