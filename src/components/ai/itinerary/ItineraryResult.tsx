@@ -92,9 +92,10 @@ export function ItineraryResult({
             onChange={(e) => setEditedContent(e.target.value)}
           />
         ) : (
-          <div className="whitespace-pre-line bg-muted p-4 rounded-md min-h-[400px] text-sm">
-            {itineraryContent}
-          </div>
+          <div 
+            className="prose prose-sm max-w-none overflow-auto"
+            dangerouslySetInnerHTML={{ __html: itineraryContent }}
+          />
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
@@ -116,12 +117,12 @@ export function ItineraryResult({
           )}
         </div>
         <Button 
-          onClick={onSave} 
+          onClick={handleSaveToAccount} 
           disabled={isSaving || isSavingLocally}
           className="bg-filipino-terracotta hover:bg-filipino-terracotta/90"
         >
           <Bookmark className="mr-2 h-4 w-4" />
-          {isSaving ? "Saving..." : "Save"}
+          {isSaving ? "Saving..." : "Save to My Itineraries"}
         </Button>
       </CardFooter>
     </Card>

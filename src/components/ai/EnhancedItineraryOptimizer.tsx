@@ -4,6 +4,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { ItineraryForm } from "@/components/ai/itinerary/ItineraryForm";
 import { ItineraryResult } from "@/components/ai/itinerary/ItineraryResult";
 import { AuthPrompt } from "@/components/auth/AuthPrompt";
+import { generateItinerary } from "@/services/gemini-api";
+import { toast } from "sonner";
 
 interface EnhancedItineraryOptimizerProps {
   destination: string;
@@ -25,17 +27,29 @@ export function EnhancedItineraryOptimizer({
   const [isSaving, setIsSaving] = useState(false);
   const [currentPreferences, setCurrentPreferences] = useState(initialItinerary);
 
-  const handleGenerateItinerary = () => {
+  const handleGenerateItinerary = async () => {
     if (!user) {
       setShowAuthPrompt(true);
       return;
     }
     
-    // Normal itinerary generation logic...
     setIsGenerating(true);
-    // Simulate API call
-    setTimeout(() => {
-      const fakeItinerary = `
+    
+    try {
+      // Use the Gemini API to generate a detailed itinerary
+      const formattedItinerary = await generateItinerary(
+        currentDestination, 
+        parseInt(currentDays) || 3, 
+        currentPreferences
+      );
+      
+      setGeneratedItinerary(formattedItinerary);
+    } catch (error) {
+      console.error("Error generating itinerary:", error);
+      toast.error("Failed to generate itinerary. Please try again.");
+      
+      // Fallback to simpler itinerary if API fails
+      const fallbackItinerary = `
 ## ${currentDays}-Day Itinerary for ${currentDestination}
 
 ### Day 1
@@ -50,9 +64,10 @@ export function EnhancedItineraryOptimizer({
 
 ${currentPreferences ? `\nTailored for preferences: ${currentPreferences}` : ''}
       `;
-      setGeneratedItinerary(fakeItinerary);
+      setGeneratedItinerary(fallbackItinerary);
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
   };
 
   const handleSaveItinerary = () => {
@@ -60,6 +75,7 @@ ${currentPreferences ? `\nTailored for preferences: ${currentPreferences}` : ''}
     // Simulate saving
     setTimeout(() => {
       setIsSaving(false);
+      toast.success("Itinerary saved successfully!");
     }, 1000);
   };
 
