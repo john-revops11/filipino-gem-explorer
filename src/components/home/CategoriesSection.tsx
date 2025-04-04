@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const categories = [
   { id: "beaches", name: "Beaches", emoji: "🏖️" },
@@ -19,14 +20,19 @@ export function CategoriesSection() {
       
       <div className="grid grid-cols-4 gap-3">
         {categories.map((category) => (
-          <Button
-            key={category.id}
-            variant="outline"
-            className="h-auto flex flex-col py-3 border-border"
+          <Link 
+            key={category.id} 
+            to={`/explore?category=${category.id}`}
+            className="block"
           >
-            <span className="text-2xl mb-1">{category.emoji}</span>
-            <span className="text-xs">{category.name}</span>
-          </Button>
+            <Button
+              variant="outline"
+              className="h-auto w-full flex flex-col py-3 border-border"
+            >
+              <span className="text-2xl mb-1">{category.emoji}</span>
+              <span className="text-xs">{category.name}</span>
+            </Button>
+          </Link>
         ))}
       </div>
     </section>

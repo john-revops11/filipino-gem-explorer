@@ -51,7 +51,9 @@ export const ProfileTabs = ({ savedItems, userActivity }: ProfileTabsProps) => {
           <div>
             <User className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground">You haven't booked any trips yet.</p>
-            <Button className="mt-4 bg-filipino-terracotta">Start Planning</Button>
+            <Link to="/itineraries">
+              <Button className="mt-4 bg-filipino-terracotta">Start Planning</Button>
+            </Link>
           </div>
         </div>
       </TabsContent>

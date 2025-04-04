@@ -150,6 +150,19 @@ export default function Explore() {
   const [filteredDestinations, setFilteredDestinations] = useState<Destination[]>(destinations);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   
+  // Check URL for category filter on page load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const categoryParam = params.get('category');
+    
+    if (categoryParam) {
+      setFilters(prev => ({
+        ...prev,
+        Activities: [...(prev.Activities || []), categoryParam]
+      }));
+    }
+  }, []);
+  
   // Apply filters when they change
   useEffect(() => {
     let results = destinations;

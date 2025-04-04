@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -17,8 +16,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DestinationCard } from "@/components/home/DestinationCard";
+import { Link } from "react-router-dom";
 
-// Mock data for destination details
 const getDestinationData = (id: string) => {
   return {
     id,
@@ -114,14 +113,18 @@ export default function DestinationDetail() {
       
       <div className="p-6">
         <div className="flex space-x-4 mb-6">
-          <Button className="flex-1 bg-filipino-terracotta hover:bg-filipino-terracotta/90">
-            <CalendarPlus className="h-4 w-4 mr-2" />
-            Add to Itinerary
-          </Button>
-          <Button variant="outline" className="flex-1">
-            <Map className="h-4 w-4 mr-2" />
-            View on Map
-          </Button>
+          <Link to="/itineraries">
+            <Button className="flex-1 bg-filipino-terracotta hover:bg-filipino-terracotta/90">
+              <CalendarPlus className="h-4 w-4 mr-2" />
+              Add to Itinerary
+            </Button>
+          </Link>
+          <Link to={`/explore?view=map&destination=${id}`}>
+            <Button variant="outline" className="flex-1">
+              <Map className="h-4 w-4 mr-2" />
+              View on Map
+            </Button>
+          </Link>
         </div>
         
         <Tabs defaultValue="overview">
@@ -177,7 +180,9 @@ export default function DestinationDetail() {
                       <span>{activity.price}</span>
                     </div>
                   </div>
-                  <Button size="sm">Book</Button>
+                  <Link to={`/bookings?activity=${activity.id}&destination=${id}`}>
+                    <Button size="sm">Book</Button>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -199,7 +204,9 @@ export default function DestinationDetail() {
                       <span>{activity.price}</span>
                     </div>
                   </div>
-                  <Button size="sm">Book</Button>
+                  <Link to={`/bookings?activity=${activity.id}&destination=${id}`}>
+                    <Button size="sm">Book</Button>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -265,9 +272,11 @@ export default function DestinationDetail() {
                       </div>
                     </div>
                     <p className="text-sm mt-2">{business.description}</p>
-                    <Button className="w-full mt-3 bg-filipino-terracotta hover:bg-filipino-terracotta/90">
-                      Support This Business
-                    </Button>
+                    <Link to={`/bookings?business=${business.id}&destination=${id}`}>
+                      <Button className="w-full mt-3 bg-filipino-terracotta hover:bg-filipino-terracotta/90">
+                        Support This Business
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ))}
