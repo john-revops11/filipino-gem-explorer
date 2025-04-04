@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/services/firebase";
+import { AuthProvider } from "@/hooks/use-auth";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import DestinationDetail from "./pages/DestinationDetail";
@@ -66,38 +66,40 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            {!isOnboardingComplete ? (
-              <>
-                <Route path="/" element={<OnboardingContainer onComplete={handleOnboardingComplete} />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </>
-            ) : (
-              <>
-                <Route path="/" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Index />} />
-                <Route path="/explore" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Explore />} />
-                <Route path="/destination/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <DestinationDetail />} />
-                <Route path="/itineraries" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Itineraries />} />
-                <Route path="/itinerary/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <DestinationDetail />} />
-                <Route path="/bookings" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Bookings />} />
-                <Route path="/booking/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <BookingDetail />} />
-                <Route path="/profile" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Profile />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                
-                {/* Authentication routes */}
-                <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
-                <Route path="/signup" element={isLoggedIn ? <Navigate to="/" replace /> : <Signup />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </>
-            )}
-          </Routes>
-          <ChatBot />
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              {!isOnboardingComplete ? (
+                <>
+                  <Route path="/" element={<OnboardingContainer onComplete={handleOnboardingComplete} />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </>
+              ) : (
+                <>
+                  <Route path="/" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Index />} />
+                  <Route path="/explore" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Explore />} />
+                  <Route path="/destination/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <DestinationDetail />} />
+                  <Route path="/itineraries" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Itineraries />} />
+                  <Route path="/itinerary/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <DestinationDetail />} />
+                  <Route path="/bookings" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Bookings />} />
+                  <Route path="/booking/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <BookingDetail />} />
+                  <Route path="/profile" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Profile />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  
+                  {/* Authentication routes */}
+                  <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
+                  <Route path="/signup" element={isLoggedIn ? <Navigate to="/" replace /> : <Signup />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </>
+              )}
+            </Routes>
+            <ChatBot />
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
