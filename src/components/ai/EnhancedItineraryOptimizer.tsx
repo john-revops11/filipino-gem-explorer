@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,7 +57,11 @@ export function EnhancedItineraryOptimizer({
   // Inside the component, find the createItinerary function
   const createItinerary = async () => {
     if (!auth.currentUser) {
-      toast.error("Please sign in to save this itinerary");
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "Please sign in to save this itinerary"
+      });
       return;
     }
 
@@ -74,7 +79,7 @@ export function EnhancedItineraryOptimizer({
         },
         content: optimizedItinerary,
         tags: ["AI-optimized", optimizedType, destination],
-        userId_created: auth.currentUser.uid, // Using userId_created instead of created_by
+        userId_created: auth.currentUser.uid,
         is_public: true,
         created_at: currentTime,
         updated_at: currentTime,
@@ -82,12 +87,19 @@ export function EnhancedItineraryOptimizer({
       };
 
       await databaseService.addItinerary(itineraryData);
-      toast.success("Itinerary saved to your account");
+      toast({
+        title: "Success",
+        description: "Itinerary saved to your account"
+      });
       
       // Navigate to itineraries page or do any other post-save action
     } catch (error) {
       console.error("Error saving itinerary:", error);
-      toast.error("Failed to save itinerary");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save itinerary"
+      });
     } finally {
       setIsSaving(false);
     }
@@ -156,3 +168,6 @@ export function EnhancedItineraryOptimizer({
     </Card>
   );
 }
+
+// Add default export to fix the import issue
+export default EnhancedItineraryOptimizer;

@@ -1,675 +1,432 @@
+import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, addDoc, deleteDoc, updateDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { v4 as uuidv4 } from 'uuid';
 
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit,
-  serverTimestamp,
-  DocumentData
-} from 'firebase/firestore';
-import { ref, set, get, push, update, remove } from 'firebase/database';
-import { firestore, database } from './firebase';
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+};
 
-// Firestore Collections
-export const COLLECTIONS = {
-  DESTINATIONS: 'destinations',
-  ITINERARIES: 'itineraries',
-  BOOKINGS: 'bookings',
-  USERS: 'users',
-  REVIEWS: 'reviews',
-  USER_PREFERENCES: 'userPreferences',
-  CONVERSATIONS: 'aiConversations',
-  LOCATIONS: 'locations',
-  FOOD_ITEMS: 'food_items',
-  BUSINESSES: 'businesses',
-  EVENTS: 'events',
-  HIDDEN_GEMS: 'hidden_gems',
-  PLACES: 'places',
-  TOURS: 'tours'
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Initialize GoogleAuthProvider
+const googleProvider = new GoogleAuthProvider();
+
+// Function to sign in with Google
+const signInWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+
+    // Check if the user exists in the users collection
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      // If the user doesn't exist, create a new document
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        // Add any other relevant user data
+      });
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Error signing in with Google:", error);
+    throw error;
+  }
+};
+
+// Function to sign out
+const signOutUser = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Error signing out:", error);
+    throw error;
+  }
 };
 
 // Define data types
-export type Destination = {
-  id?: string;
+export interface Place {
+  id: string;
   name: string;
-  description: string;
   location: string;
-  image: string;
-  tags: string[];
-  average_rating: number;
-  total_reviews: number;
-  latitude: number;
-  longitude: number;
-};
-
-export type Itinerary = {
-  id?: string;
-  destinationId?: string;
-  userId?: string;
-  days: number;
-  title?: string;
-  description?: string;
-  createdAt?: any;
-  // Additional properties needed by components
-  name?: string;
-  destinations?: string[];
-  location?: any;
-  content?: string;
-  tags?: string[];
-  image?: string;
-  is_public?: boolean;
-  status?: string;
-  dateRange?: string;
-  created_at?: string;
-  updated_at?: string;
-  userId_created?: string; // Using this instead of created_by to match our type
-};
-
-export type Booking = {
-  id?: string;
-  itineraryId: string;
-  userId: string;
-  startDate: Date;
-  endDate: Date;
-  totalCost: number;
-  status: string;
-};
-
-export type User = {
-  id?: string;
-  name: string;
-  email: string;
-  profilePicture: string;
-  interests: string[];
-  travelStyle: string;
-  budget: string;
-};
-
-export type Review = {
-  id?: string;
-  destinationId: string;
-  userId: string;
-  rating: number;
-  comment: string;
-  createdAt: any;
-};
-
-export type UserPreferences = {
-  id?: string;
-  userId: string;
-  interests: string[];
-  travelStyle: string;
-  budget: string;
-};
-
-export type AIConversation = {
-  id?: string;
-  userId: string;
-  messages: { role: string; content: string }[];
-  createdAt: any;
-};
-
-export type Location = {
-  id?: string;
-  name: string;
   description: string;
-  image: string;
-  tags: string[];
-  latitude?: number;
-  longitude?: number;
-  region?: string; // Added to fix type errors
-};
-
-export type Food = {
-  id?: string;
-  name: string;
   type: string;
-  description: string;
-  price_range: string;
-  location_id: string;
   image: string;
   tags: string[];
-};
-
-// Additional types required by components
-export type Business = {
-  id?: string;
-  name: string;
-  description: string;
-  location: string;
-  category: string;
-  image: string;
-  featured?: boolean;
-  phone?: string;
-  website?: string;
-  hours?: string;
-  owner?: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-export type Event = {
-  id?: string;
-  name: string;
-  description: string;
-  location: string;
-  date: string;
-  image: string;
-  featured?: boolean;
-};
-
-export type HiddenGem = {
-  id?: string;
-  name: string;
-  description: string;
-  location: string;
-  image: string;
-  featured?: boolean;
-};
-
-export type Place = {
-  id?: string;
-  name: string;
-  description: string;
-  location: string;
-  category?: string;
-  image?: string;
-  // Adding missing properties needed by AdminPlaces.tsx
-  type?: string;
-  location_id?: string;
-  tags?: string[];
-  amenities?: string[];
+  rating?: number;
+  price_range?: string;
   is_hidden_gem?: boolean;
   is_local_business?: boolean;
-  address?: string;
-  price_range?: string;
-  contact?: string;
-  website?: string;
-};
+  opening_hours?: {
+    weekday_text: string[];
+  };
+  geometry?: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+}
 
-export type Tour = {
+export interface Itinerary {
   id?: string;
   name: string;
   description: string;
-  location: string;
-  duration: string;
-  price: number;
-  image: string;
-  // Adding missing properties needed by AdminTours.tsx
-  location_id?: string;
-  price_range?: string;
-  highlights?: string[];
-  includes?: string[];
-};
-
-// Firestore Operations
-const getDocument = async (collectionName: string, docId: string) => {
-  const docRef = doc(firestore, collectionName, docId);
-  const docSnap = await getDoc(docRef);
-  
-  if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() };
-  } else {
-    return null;
-  }
-};
-
-const getCollection = async (collectionName: string) => {
-  const collectionRef = collection(firestore, collectionName);
-  const querySnapshot = await getDocs(collectionRef);
-  
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-};
-
-const queryDocuments = async (
-  collectionName: string, 
-  conditions: { field: string; operator: string; value: any }[] = [],
-  sortBy: { field: string; direction: 'asc' | 'desc' }[] = [],
-  limitTo?: number
-) => {
-  let collectionRef = collection(firestore, collectionName);
-  let queryRef: any = collectionRef;
-  
-  // Apply where conditions
-  conditions.forEach(condition => {
-    queryRef = query(queryRef, where(condition.field, condition.operator as any, condition.value));
-  });
-  
-  // Apply sorting
-  sortBy.forEach(sort => {
-    queryRef = query(queryRef, orderBy(sort.field, sort.direction));
-  });
-  
-  // Apply limit
-  if (limitTo) {
-    queryRef = query(queryRef, limit(limitTo));
-  }
-  
-  const querySnapshot = await getDocs(queryRef);
-  
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-};
-
-const addDocument = async (collectionName: string, data: any) => {
-  // Create a plain JavaScript object to store the data
-  const plainData: Record<string, any> = {};
-  
-  // Only try to extract properties if data is an object
-  if (data && typeof data === 'object' && data !== null) {
-    // Safely copy properties from data to plainData using Object.entries
-    Object.entries(Object(data)).forEach(([key, value]) => {
-      plainData[key] = value;
-    });
-  }
-  
-  // Add the document with the plain data object and timestamps
-  const docRef = await addDoc(collection(firestore, collectionName), {
-    ...plainData,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  });
-  
-  return docRef.id;
-};
-
-const updateDocument = async (collectionName: string, docId: string, data: any) => {
-  // Create a plain JavaScript object to store the data
-  const plainData: Record<string, any> = {};
-  
-  // Only try to extract properties if data is an object
-  if (data && typeof data === 'object' && data !== null) {
-    // Safely copy properties from data to plainData using Object.entries
-    Object.entries(Object(data)).forEach(([key, value]) => {
-      plainData[key] = value;
-    });
-  }
-  
-  const docRef = doc(firestore, collectionName, docId);
-  
-  await updateDoc(docRef, {
-    ...plainData,
-    updatedAt: serverTimestamp()
-  });
-  
-  return true;
-};
-
-const deleteDocument = async (collectionName: string, docId: string) => {
-  const docRef = doc(firestore, collectionName, docId);
-  await deleteDoc(docRef);
-  
-  return true;
-};
-
-// Realtime Database Operations
-const setData = async (path: string, data: any) => {
-  const dbRef = ref(database, path);
-  await set(dbRef, data);
-  return true;
-};
-
-const getData = async (path: string) => {
-  const dbRef = ref(database, path);
-  const snapshot = await get(dbRef);
-  
-  if (snapshot.exists()) {
-    return snapshot.val();
-  } else {
-    return null;
-  }
-};
-
-const pushData = async (path: string, data: any) => {
-  // Create a plain JavaScript object to store the data
-  const plainData: Record<string, any> = {};
-  
-  // Only try to extract properties if data is an object
-  if (data && typeof data === 'object' && data !== null) {
-    // Safely copy properties from data to plainData using Object.entries
-    Object.entries(Object(data)).forEach(([key, value]) => {
-      plainData[key] = value;
-    });
-  }
-  
-  const listRef = ref(database, path);
-  const newItemRef = push(listRef);
-  
-  await set(newItemRef, {
-    ...plainData,
-    timestamp: Date.now()
-  });
-  
-  return newItemRef.key;
-};
-
-const updateData = async (path: string, data: any) => {
-  const dbRef = ref(database, path);
-  await update(dbRef, data);
-  return true;
-};
-
-const removeData = async (path: string) => {
-  const dbRef = ref(database, path);
-  await remove(dbRef);
-  return true;
-};
-
-// New methods for locations and food items
-const saveLocation = async (location: Location) => {
-  if (location.id) {
-    // Update existing location
-    await updateDocument(COLLECTIONS.LOCATIONS, location.id, location);
-    return location.id;
-  } else {
-    // Create new location
-    return await addDocument(COLLECTIONS.LOCATIONS, location);
-  }
-};
-
-const getLocation = async (locationId: string) => {
-  return await getDocument(COLLECTIONS.LOCATIONS, locationId) as Location;
-};
-
-const getLocations = async () => {
-  return await getCollection(COLLECTIONS.LOCATIONS) as Location[];
-};
-
-const deleteLocation = async (locationId: string) => {
-  return await deleteDocument(COLLECTIONS.LOCATIONS, locationId);
-};
-
-const saveFoodItem = async (food: Food) => {
-  if (food.id) {
-    // Update existing food item
-    await updateDocument(COLLECTIONS.FOOD_ITEMS, food.id, food);
-    return food.id;
-  } else {
-    // Create new food item
-    return await addDocument(COLLECTIONS.FOOD_ITEMS, food);
-  }
-};
-
-const getFoodItem = async (foodId: string) => {
-  return await getDocument(COLLECTIONS.FOOD_ITEMS, foodId) as Food;
-};
-
-const getFoodItemsByLocation = async (locationId: string) => {
-  return await queryDocuments(
-    COLLECTIONS.FOOD_ITEMS,
-    [{ field: 'location_id', operator: '==', value: locationId }]
-  ) as Food[];
-};
-
-const deleteFoodItem = async (foodId: string) => {
-  return await deleteDocument(COLLECTIONS.FOOD_ITEMS, foodId);
-};
-
-// Additional methods required by components
-const getAllBookings = async () => {
-  return await getCollection(COLLECTIONS.BOOKINGS) as Booking[];
-};
-
-const updateBookingStatus = async (bookingId: string, status: string) => {
-  return await updateDocument(COLLECTIONS.BOOKINGS, bookingId, { status });
-};
-
-const getAllBusinesses = async () => {
-  return await getCollection(COLLECTIONS.BUSINESSES) as Business[];
-};
-
-const addBusiness = async (business: Business) => {
-  return await addDocument(COLLECTIONS.BUSINESSES, business);
-};
-
-const updateBusiness = async (businessId: string, business: Business) => {
-  return await updateDocument(COLLECTIONS.BUSINESSES, businessId, business);
-};
-
-const deleteBusiness = async (businessId: string) => {
-  return await deleteDocument(COLLECTIONS.BUSINESSES, businessId);
-};
-
-const updateBusinessFeaturedStatus = async (businessId: string, featured: boolean) => {
-  return await updateDocument(COLLECTIONS.BUSINESSES, businessId, { featured });
-};
-
-const getAllEvents = async () => {
-  return await getCollection(COLLECTIONS.EVENTS) as Event[];
-};
-
-const addEvent = async (event: Event) => {
-  return await addDocument(COLLECTIONS.EVENTS, event);
-};
-
-const updateEvent = async (eventId: string, event: Event) => {
-  return await updateDocument(COLLECTIONS.EVENTS, eventId, event);
-};
-
-const deleteEvent = async (eventId: string) => {
-  return await deleteDocument(COLLECTIONS.EVENTS, eventId);
-};
-
-const getAllHiddenGems = async () => {
-  return await getCollection(COLLECTIONS.HIDDEN_GEMS) as HiddenGem[];
-};
-
-const addHiddenGem = async (gem: HiddenGem) => {
-  return await addDocument(COLLECTIONS.HIDDEN_GEMS, gem);
-};
-
-const updateHiddenGem = async (gemId: string, gem: HiddenGem) => {
-  return await updateDocument(COLLECTIONS.HIDDEN_GEMS, gemId, gem);
-};
-
-const deleteHiddenGem = async (gemId: string) => {
-  return await deleteDocument(COLLECTIONS.HIDDEN_GEMS, gemId);
-};
-
-const updateHiddenGemFeaturedStatus = async (gemId: string, featured: boolean) => {
-  return await updateDocument(COLLECTIONS.HIDDEN_GEMS, gemId, { featured });
-};
-
-const getPublicItineraries = async () => {
-  return await queryDocuments(
-    COLLECTIONS.ITINERARIES,
-    [{ field: 'is_public', operator: '==', value: true }]
-  ) as Itinerary[];
-};
-
-const saveItinerary = async (itinerary: Itinerary) => {
-  if (itinerary.id) {
-    await updateDocument(COLLECTIONS.ITINERARIES, itinerary.id, itinerary);
-    return itinerary.id;
-  } else {
-    return await addDocument(COLLECTIONS.ITINERARIES, itinerary);
-  }
-};
-
-const getUsersCount = async () => {
-  const users = await getCollection(COLLECTIONS.USERS);
-  return users.length;
-};
-
-const getBookingsCount = async () => {
-  const bookings = await getCollection(COLLECTIONS.BOOKINGS);
-  return bookings.length;
-};
-
-const getDestinationsCount = async () => {
-  const destinations = await getCollection(COLLECTIONS.DESTINATIONS);
-  return destinations.length;
-};
-
-const getRecentUsers = async (count = 5) => {
-  return await queryDocuments(
-    COLLECTIONS.USERS,
-    [],
-    [{ field: 'createdAt', direction: 'desc' }],
-    count
-  );
-};
-
-const getRecentBookings = async (count = 5) => {
-  return await queryDocuments(
-    COLLECTIONS.BOOKINGS,
-    [],
-    [{ field: 'createdAt', direction: 'desc' }],
-    count
-  );
-};
-
-const getPlaces = async () => {
-  return await getCollection(COLLECTIONS.PLACES) as Place[];
-};
-
-const savePlace = async (place: Place) => {
-  if (place.id) {
-    await updateDocument(COLLECTIONS.PLACES, place.id, place);
-    return place.id;
-  } else {
-    return await addDocument(COLLECTIONS.PLACES, place);
-  }
-};
-
-const getToursByLocation = async (locationId: string) => {
-  return await queryDocuments(
-    COLLECTIONS.TOURS,
-    [{ field: 'location_id', operator: '==', value: locationId }]
-  ) as Tour[];
-};
-
-const saveTour = async (tour: Tour) => {
-  if (tour.id) {
-    await updateDocument(COLLECTIONS.TOURS, tour.id, tour);
-    return tour.id;
-  } else {
-    return await addDocument(COLLECTIONS.TOURS, tour);
-  }
-};
-
-const getAllUsers = async () => {
-  return await getCollection(COLLECTIONS.USERS) as User[];
-};
-
-const deleteUser = async (userId: string) => {
-  return await deleteDocument(COLLECTIONS.USERS, userId);
-};
-
-const updateUserRole = async (userId: string, isAdmin: boolean) => {
-  return await updateDocument(COLLECTIONS.USERS, userId, { isAdmin });
-};
-
-const addItinerary = async (itinerary: Itinerary) => {
-  return await addDocument(COLLECTIONS.ITINERARIES, itinerary);
-};
-
-const getAllItineraries = async () => {
-  return await getCollection(COLLECTIONS.ITINERARIES) as Itinerary[];
-};
-
-const generateItinerary = async (destination: string) => {
-  // Simplified implementation for mock data
-  const mockItinerary = {
-    name: `Trip to ${destination}`,
-    description: `Generated itinerary for ${destination}`,
-    days: 3,
-    content: `Day 1: Explore ${destination}\nDay 2: Visit local attractions\nDay 3: Relax and enjoy`,
-    createdAt: new Date().toISOString()
+  days: number;
+  destinations: string[];
+  location: {
+    name: string;
   };
-  
-  return mockItinerary.content;
+  content: string;
+  tags: string[];
+  userId_created: string; // Changed from created_by to userId_created
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  createdAt: string;
+}
+
+export interface Booking {
+  id?: string;
+  userId: string;
+  placeId: string;
+  placeName: string;
+  checkInDate: string;
+  checkOutDate: string;
+  numberOfGuests: number;
+  totalPrice: number;
+  createdAt: string;
+}
+
+// Function to add a place
+const addPlace = async (placeData: Place) => {
+  try {
+    const placesCollection = collection(db, "places");
+    const docRef = await addDoc(placesCollection, placeData);
+    console.log("Place added with ID:", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding place:", error);
+    throw error;
+  }
 };
 
-const getUserItineraries = async (userId: string) => {
-  return await queryDocuments(
-    COLLECTIONS.ITINERARIES,
-    [{ field: 'userId', operator: '==', value: userId }]
-  ) as Itinerary[];
+// Function to get a place by ID
+const getPlace = async (id: string): Promise<Place | undefined> => {
+  try {
+    const placeDocRef = doc(db, "places", id);
+    const placeDoc = await getDoc(placeDocRef);
+
+    if (placeDoc.exists()) {
+      return { id: placeDoc.id, ...placeDoc.data() } as Place;
+    } else {
+      console.log("Place not found");
+      return undefined;
+    }
+  } catch (error) {
+    console.error("Error getting place:", error);
+    throw error;
+  }
 };
 
-const generateInitialData = async () => {
-  // Mock implementation for demo purposes
-  console.log("Generating initial data");
-  return true;
+// Function to get all places
+const getPlaces = async (): Promise<Place[]> => {
+  try {
+    const placesCollection = collection(db, "places");
+    const placeSnapshot = await getDocs(placesCollection);
+    const placesList = placeSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Place[];
+    return placesList;
+  } catch (error) {
+    console.error("Error getting places:", error);
+    throw error;
+  }
+};
+
+// Function to get places by query
+const getPlacesByQuery = async (searchQuery: string): Promise<Place[]> => {
+  try {
+    const placesCollection = collection(db, "places");
+    const q = query(
+      placesCollection,
+      where("tags", "array-contains", searchQuery)
+    );
+    const querySnapshot = await getDocs(q);
+    const placesList = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Place[];
+    return placesList;
+  } catch (error) {
+    console.error("Error getting places by query:", error);
+    throw error;
+  }
+};
+
+// Function to update a place
+const updatePlace = async (id: string, updates: Partial<Place>) => {
+  try {
+    const placeDocRef = doc(db, "places", id);
+    await updateDoc(placeDocRef, updates);
+    console.log("Place updated");
+  } catch (error) {
+    console.error("Error updating place:", error);
+    throw error;
+  }
+};
+
+// Function to delete a place
+const deletePlace = async (id: string) => {
+  try {
+    const placeDocRef = doc(db, "places", id);
+    await deleteDoc(placeDocRef);
+    console.log("Place deleted");
+  } catch (error) {
+    console.error("Error deleting place:", error);
+    throw error;
+  }
+};
+
+// Function to upload an image to Firebase Storage
+const uploadImage = async (image: File, path: string): Promise<string> => {
+  try {
+    const storageRef = ref(storage, `${path}/${image.name}`);
+    await uploadBytes(storageRef, image);
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    throw error;
+  }
+};
+
+// Function to add an itinerary
+const addItinerary = async (itineraryData: Itinerary) => {
+  try {
+    const itinerariesCollection = collection(db, "itineraries");
+    const docRef = await addDoc(itinerariesCollection, itineraryData);
+    console.log("Itinerary added with ID:", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding itinerary:", error);
+    throw error;
+  }
+};
+
+// Function to get an itinerary by ID
+const getItinerary = async (id: string): Promise<Itinerary | undefined> => {
+  try {
+    const itineraryDocRef = doc(db, "itineraries", id);
+    const itineraryDoc = await getDoc(itineraryDocRef);
+
+    if (itineraryDoc.exists()) {
+      return { id: itineraryDoc.id, ...itineraryDoc.data() } as Itinerary;
+    } else {
+      console.log("Itinerary not found");
+      return undefined;
+    }
+  } catch (error) {
+    console.error("Error getting itinerary:", error);
+    throw error;
+  }
+};
+
+// Function to get all itineraries
+const getItineraries = async (): Promise<Itinerary[]> => {
+  try {
+    const itinerariesCollection = collection(db, "itineraries");
+    const itinerarySnapshot = await getDocs(itinerariesCollection);
+    const itinerariesList = itinerarySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Itinerary[];
+    return itinerariesList;
+  } catch (error) {
+    console.error("Error getting itineraries:", error);
+    throw error;
+  }
+};
+
+// Function to get itineraries by user ID
+const getItinerariesByUserId = async (userId: string): Promise<Itinerary[]> => {
+  try {
+    const itinerariesCollection = collection(db, "itineraries");
+    const q = query(
+      itinerariesCollection,
+      where("userId_created", "==", userId) // Changed from created_by to userId_created
+    );
+    const querySnapshot = await getDocs(q);
+    const itinerariesList = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Itinerary[];
+    return itinerariesList;
+  } catch (error) {
+    console.error("Error getting itineraries by user ID:", error);
+    throw error;
+  }
+};
+
+// Function to update an itinerary
+const updateItinerary = async (id: string, updates: Partial<Itinerary>) => {
+  try {
+    const itineraryDocRef = doc(db, "itineraries", id);
+    await updateDoc(itineraryDocRef, updates);
+    console.log("Itinerary updated");
+  } catch (error) {
+    console.error("Error updating itinerary:", error);
+    throw error;
+  }
+};
+
+// Function to delete an itinerary
+const deleteItinerary = async (id: string) => {
+  try {
+    const itineraryDocRef = doc(db, "itineraries", id);
+    await deleteDoc(itineraryDocRef);
+    console.log("Itinerary deleted");
+  } catch (error) {
+    console.error("Error deleting itinerary:", error);
+    throw error;
+  }
+};
+
+// Function to add a booking
+const addBooking = async (bookingData: Booking) => {
+  try {
+    const bookingsCollection = collection(db, "bookings");
+    const docRef = await addDoc(bookingsCollection, bookingData);
+    console.log("Booking added with ID:", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding booking:", error);
+    throw error;
+  }
+};
+
+// Function to get a booking by ID
+const getBooking = async (id: string): Promise<Booking | undefined> => {
+  try {
+    const bookingDocRef = doc(db, "bookings", id);
+    const bookingDoc = await getDoc(bookingDocRef);
+
+    if (bookingDoc.exists()) {
+      return { id: bookingDoc.id, ...bookingDoc.data() } as Booking;
+    } else {
+      console.log("Booking not found");
+      return undefined;
+    }
+  } catch (error) {
+    console.error("Error getting booking:", error);
+    throw error;
+  }
+};
+
+// Function to get all bookings
+const getBookings = async (): Promise<Booking[]> => {
+  try {
+    const bookingsCollection = collection(db, "bookings");
+    const bookingSnapshot = await getDocs(bookingsCollection);
+    const bookingsList = bookingSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Booking[];
+    return bookingsList;
+  } catch (error) {
+    console.error("Error getting bookings:", error);
+    throw error;
+  }
+};
+
+// Function to get bookings by user ID
+const getBookingsByUserId = async (userId: string): Promise<Booking[]> => {
+  try {
+    const bookingsCollection = collection(db, "bookings");
+    const q = query(
+      bookingsCollection,
+      where("userId", "==", userId)
+    );
+    const querySnapshot = await getDocs(q);
+    const bookingsList = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Booking[];
+    return bookingsList;
+  } catch (error) {
+    console.error("Error getting bookings by user ID:", error);
+    throw error;
+  }
+};
+
+// Function to update a booking
+const updateBooking = async (id: string, updates: Partial<Booking>) => {
+  try {
+    const bookingDocRef = doc(db, "bookings", id);
+    await updateDoc(bookingDocRef, updates);
+    console.log("Booking updated");
+  } catch (error) {
+    console.error("Error updating booking:", error);
+    throw error;
+  }
+};
+
+// Function to delete a booking
+const deleteBooking = async (id: string) => {
+  try {
+    const bookingDocRef = doc(db, "bookings", id);
+    await deleteDoc(bookingDocRef);
+    console.log("Booking deleted");
+  } catch (error) {
+    console.error("Error deleting booking:", error);
+    throw error;
+  }
 };
 
 const databaseService = {
-  // Firestore
-  getDocument,
-  getCollection,
-  queryDocuments,
-  addDocument,
-  updateDocument,
-  deleteDocument,
-  
-  // Realtime DB
-  setData,
-  getData,
-  pushData,
-  updateData,
-  removeData,
-
-  // Locations
-  saveLocation,
-  getLocation,
-  getLocations,
-  deleteLocation,
-
-  // Food Items
-  saveFoodItem,
-  getFoodItem,
-  getFoodItemsByLocation,
-  deleteFoodItem,
-  
-  // Additional methods
-  getAllBookings,
-  updateBookingStatus,
-  getAllBusinesses,
-  addBusiness,
-  updateBusiness,
-  deleteBusiness,
-  updateBusinessFeaturedStatus,
-  getAllEvents,
-  addEvent,
-  updateEvent,
-  deleteEvent,
-  getAllHiddenGems,
-  addHiddenGem,
-  updateHiddenGem,
-  deleteHiddenGem,
-  updateHiddenGemFeaturedStatus,
-  getPublicItineraries,
-  saveItinerary,
-  getUsersCount,
-  getBookingsCount,
-  getDestinationsCount,
-  getRecentUsers,
-  getRecentBookings,
+  auth,
+  db,
+  storage,
+  signInWithGoogle,
+  signOutUser,
+  addPlace,
+  getPlace,
   getPlaces,
-  savePlace,
-  getToursByLocation,
-  saveTour,
-  getAllUsers,
-  deleteUser,
-  updateUserRole,
+  getPlacesByQuery,
+  updatePlace,
+  deletePlace,
+  uploadImage,
   addItinerary,
-  getAllItineraries,
-  generateItinerary,
-  getUserItineraries,
-  generateInitialData
+  getItinerary,
+  getItineraries,
+  getItinerariesByUserId,
+  updateItinerary,
+  deleteItinerary,
+  addBooking,
+  getBooking,
+  getBookings,
+  getBookingsByUserId,
+  updateBooking,
+  deleteBooking,
 };
 
 export default databaseService;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -26,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import EnhancedSearch from "@/components/ai/EnhancedSearch";
-import EnhancedItineraryOptimizer from "@/components/ai/EnhancedItineraryOptimizer";
+import { EnhancedItineraryOptimizer } from "@/components/ai/EnhancedItineraryOptimizer";
 
 interface Destination {
   id: string;
