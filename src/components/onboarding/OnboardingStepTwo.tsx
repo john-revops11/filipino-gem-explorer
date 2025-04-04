@@ -39,9 +39,10 @@ export default function OnboardingStepTwo({ preferences, updatePreferences }: On
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
+      className="bg-black/30 p-6 rounded-xl backdrop-blur-sm text-white max-w-lg mx-auto"
     >
       <h2 className="text-2xl font-bold mb-2">What interests you most?</h2>
-      <p className="text-muted-foreground mb-6">
+      <p className="text-white/80 mb-6">
         Select all that apply to get personalized recommendations.
       </p>
 
@@ -54,12 +55,12 @@ export default function OnboardingStepTwo({ preferences, updatePreferences }: On
               onClick={() => toggleInterest(interest.id)}
               className={`relative flex flex-col items-center justify-center p-4 rounded-lg border ${
                 isSelected
-                  ? "bg-filipino-terracotta/10 border-filipino-terracotta"
-                  : "border-border bg-card"
+                  ? "bg-filipino-terracotta/70 border-filipino-terracotta"
+                  : "border-white/20 bg-white/10"
               } transition-all duration-200`}
             >
               {isSelected && (
-                <CheckCircle2 className="absolute top-2 right-2 h-5 w-5 text-filipino-terracotta" />
+                <CheckCircle2 className="absolute top-2 right-2 h-5 w-5 text-white" />
               )}
               <span className="text-2xl mb-2">{interest.emoji}</span>
               <span className={isSelected ? "font-medium" : ""}>{interest.label}</span>

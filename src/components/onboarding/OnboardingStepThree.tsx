@@ -31,6 +31,7 @@ export default function OnboardingStepThree({ preferences, updatePreferences }: 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
+      className="bg-black/30 p-6 rounded-xl backdrop-blur-sm text-white max-w-lg mx-auto"
     >
       <h2 className="text-2xl font-bold mb-6">A bit more about your travel</h2>
 
@@ -51,7 +52,7 @@ export default function OnboardingStepThree({ preferences, updatePreferences }: 
                 />
                 <Label
                   htmlFor={`travel-style-${style.id}`}
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-border bg-card peer-data-[state=checked]:bg-filipino-terracotta/10 peer-data-[state=checked]:border-filipino-terracotta"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-white/20 bg-white/10 peer-data-[state=checked]:bg-filipino-terracotta/70 peer-data-[state=checked]:border-filipino-terracotta w-full cursor-pointer"
                 >
                   <span className="text-2xl mb-2">{style.emoji}</span>
                   <span className="text-center">{style.label}</span>
@@ -73,6 +74,7 @@ export default function OnboardingStepThree({ preferences, updatePreferences }: 
                 <RadioGroupItem
                   value={budget.id}
                   id={`budget-${budget.id}`}
+                  className="text-filipino-terracotta"
                 />
                 <Label htmlFor={`budget-${budget.id}`}>{budget.label}</Label>
               </div>
