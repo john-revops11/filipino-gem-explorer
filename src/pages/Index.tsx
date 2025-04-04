@@ -8,9 +8,6 @@ import { HiddenGemsSection } from "@/components/home/HiddenGemsSection";
 import { UpcomingEvents } from "@/components/home/UpcomingEvents";
 import { LocalBusinessHighlight } from "@/components/home/LocalBusinessHighlight";
 import OnboardingContainer from "@/components/onboarding/OnboardingContainer";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { Shield } from "lucide-react";
 
 const Index = () => {
   const [showOnboarding, setShowOnboarding] = useState(true);
@@ -41,16 +38,6 @@ const Index = () => {
           <p className="text-muted-foreground">
             Explore hidden gems and authentic local experiences
           </p>
-          
-          {/* Development quick access - remove in production */}
-          <div className="mt-4">
-            <Link to="/admin">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Admin Dashboard
-              </Button>
-            </Link>
-          </div>
         </div>
         
         <FeaturedDestinations />
