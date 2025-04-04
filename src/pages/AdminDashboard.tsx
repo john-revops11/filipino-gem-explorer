@@ -45,7 +45,7 @@ export default function AdminDashboard() {
           <ContentGeneratorDialog />
         </div>
 
-        <Tabs defaultValue="destinations" className="w-full">
+        <Tabs defaultValue="places" className="w-full">
           <TabsList className="grid grid-cols-5 mb-8">
             <TabsTrigger value="destinations">Destinations</TabsTrigger>
             <TabsTrigger value="places">Places</TabsTrigger>

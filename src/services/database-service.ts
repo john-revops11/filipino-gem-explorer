@@ -53,7 +53,7 @@ export interface Tour {
 export interface Place {
   id?: string;
   name: string;
-  type: "hotel" | "resort" | "tourist_spot" | "restaurant" | "other";
+  type: "hotel" | "resort" | "tourist_spot" | "restaurant" | "cafe" | "other";
   description: string;
   location_id: string;
   image?: string;
@@ -63,6 +63,8 @@ export interface Place {
   website?: string;
   amenities?: string[];
   tags?: string[];
+  is_hidden_gem?: boolean;
+  is_local_business?: boolean;
 }
 
 export interface ItineraryDay {

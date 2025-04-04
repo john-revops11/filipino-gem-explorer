@@ -28,35 +28,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import databaseService, { Location } from "@/services/database-service";
-import { Building, Hotel, MapPin, Plus, Edit, Trash2 } from "lucide-react";
+import databaseService, { Location, Place } from "@/services/database-service";
+import { PlaceCard } from "@/components/home/PlaceCard";
+import { Building, Hotel, MapPin, Plus, Edit, Trash2, Store, Gem, Coffee } from "lucide-react";
 
-// Define Place type
-interface Place {
-  id?: string;
-  name: string;
-  type: "hotel" | "resort" | "tourist_spot" | "restaurant" | "other";
-  description: string;
-  location_id: string;
-  image?: string;
-  address?: string;
-  price_range?: string;
-  contact?: string;
-  website?: string;
-  amenities?: string[];
-  tags?: string[];
-}
+// Place category definitions
+const PLACE_CATEGORIES = {
+  hotel: {
+    icon: Hotel,
+    label: "Hotels",
+    description: "Accommodations for travelers"
+  },
+  resort: {
+    icon: Building,
+    label: "Resorts",
+    description: "Luxury accommodations with amenities"
+  },
+  tourist_spot: {
+    icon: MapPin,
+    label: "Tourist Spots",
+    description: "Popular attractions and landmarks"
+  },
+  restaurant: {
+    icon: Utensils,
+    label: "Restaurants",
+    description: "Dining establishments"
+  },
+  hidden_gem: {
+    icon: Gem,
+    label: "Hidden Gems",
+    description: "Lesser-known but exceptional places"
+  },
+  local_business: {
+    icon: Store,
+    label: "Local Businesses",
+    description: "Locally owned establishments"
+  },
+  cafe: {
+    icon: Coffee,
+    label: "Cafes",
+    description: "Coffee shops and casual dining"
+  }
+};
 
 export function AdminPlaces() {
   const [openDialog, setOpenDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
   const [newPlace, setNewPlace] = useState<Partial<Place>>({
     name: "",
     type: "hotel",
     description: "",
     location_id: "",
     tags: [],
+    amenities: [],
+    is_hidden_gem: false,
+    is_local_business: false,
   });
   const [tagInput, setTagInput] = useState("");
   const [amenityInput, setAmenityInput] = useState("");
@@ -71,22 +100,12 @@ export function AdminPlaces() {
   // Fetch all places
   const { data: places = [], isLoading } = useQuery({
     queryKey: ["places"],
-    queryFn: async () => {
-      try {
-        // This would be implemented in database-service.ts
-        const placesSnapshot = await databaseService.getPlaces();
-        return placesSnapshot || [];
-      } catch (error) {
-        console.error("Error fetching places:", error);
-        return [];
-      }
-    },
+    queryFn: databaseService.getPlaces,
   });
 
   // Create place mutation
   const createPlaceMutation = useMutation({
     mutationFn: async (placeData: Place) => {
-      // This would be implemented in database-service.ts
       return await databaseService.savePlace(placeData);
     },
     onSuccess: () => {
@@ -98,6 +117,8 @@ export function AdminPlaces() {
         location_id: "",
         tags: [],
         amenities: [],
+        is_hidden_gem: false,
+        is_local_business: false,
       });
       setOpenDialog(false);
       toast.success("Place added successfully");
@@ -164,17 +185,22 @@ export function AdminPlaces() {
 
   // Get icon based on place type
   const getPlaceIcon = (type: string) => {
-    switch (type) {
-      case "hotel":
-        return <Hotel className="h-4 w-4" />;
-      case "resort":
-        return <Building className="h-4 w-4" />;
-      case "tourist_spot":
-        return <MapPin className="h-4 w-4" />;
-      default:
-        return <Building className="h-4 w-4" />;
+    const category = PLACE_CATEGORIES[type as keyof typeof PLACE_CATEGORIES];
+    if (category) {
+      return <category.icon className="h-4 w-4" />;
     }
+    return <Building className="h-4 w-4" />;
   };
+
+  // Filter places based on selected tab
+  const getFilteredPlaces = () => {
+    if (activeTab === "all") return places;
+    if (activeTab === "hidden_gems") return places.filter(place => place.is_hidden_gem);
+    if (activeTab === "local_businesses") return places.filter(place => place.is_local_business);
+    return places.filter(place => place.type === activeTab);
+  };
+
+  const filteredPlaces = getFilteredPlaces();
 
   return (
     <div className="space-y-6">
@@ -187,7 +213,7 @@ export function AdminPlaces() {
               Add Place
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Place</DialogTitle>
               <DialogDescription>
@@ -220,6 +246,7 @@ export function AdminPlaces() {
                     <SelectItem value="resort">Resort</SelectItem>
                     <SelectItem value="tourist_spot">Tourist Spot</SelectItem>
                     <SelectItem value="restaurant">Restaurant</SelectItem>
+                    <SelectItem value="cafe">Cafe</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
@@ -384,6 +411,33 @@ export function AdminPlaces() {
                   </div>
                 )}
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is_hidden_gem"
+                    checked={newPlace.is_hidden_gem || false}
+                    onChange={(e) => setNewPlace({ ...newPlace, is_hidden_gem: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-filipino-teal focus:ring-filipino-teal"
+                  />
+                  <Label htmlFor="is_hidden_gem" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Hidden Gem
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is_local_business"
+                    checked={newPlace.is_local_business || false}
+                    onChange={(e) => setNewPlace({ ...newPlace, is_local_business: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-filipino-teal focus:ring-filipino-teal"
+                  />
+                  <Label htmlFor="is_local_business" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Local Business
+                  </Label>
+                </div>
+              </div>
             </div>
 
             <DialogFooter>
@@ -398,90 +452,120 @@ export function AdminPlaces() {
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-filipino-teal border-t-transparent rounded-full"></div>
-        </div>
-      ) : places.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No places found. Add your first place.</p>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {places.map((place: Place) => (
-            <Card key={place.id}>
-              <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                <img
-                  src={place.image || "https://images.unsplash.com/photo-1596386461350-326ccb383e9f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
-                  alt={place.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-2">
-                    {getPlaceIcon(place.type)}
-                    <div>
-                      <CardTitle>{place.name}</CardTitle>
-                      <CardDescription>{getLocationName(place.location_id)}</CardDescription>
+      <Tabs defaultValue="all" onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-4 lg:grid-cols-7 mb-6">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="hotel">Hotels</TabsTrigger>
+          <TabsTrigger value="resort">Resorts</TabsTrigger>
+          <TabsTrigger value="tourist_spot">Tourist Spots</TabsTrigger>
+          <TabsTrigger value="restaurant">Restaurants</TabsTrigger>
+          <TabsTrigger value="hidden_gems">Hidden Gems</TabsTrigger>
+          <TabsTrigger value="local_businesses">Local Businesses</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={activeTab}>
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin h-8 w-8 border-4 border-filipino-teal border-t-transparent rounded-full"></div>
+            </div>
+          ) : filteredPlaces.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No places found in this category. Add your first place.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredPlaces.map((place: Place) => (
+                <Card key={place.id} className="overflow-hidden">
+                  <div className="aspect-video w-full">
+                    <img
+                      src={place.image || "https://images.unsplash.com/photo-1596386461350-326ccb383e9f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
+                      alt={place.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        {getPlaceIcon(place.type)}
+                        <div>
+                          <CardTitle className="text-lg">{place.name}</CardTitle>
+                          <CardDescription>{getLocationName(place.location_id)}</CardDescription>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="ghost" size="icon">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="ghost" size="icon">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {place.description}
-                </p>
-                {place.price_range && (
-                  <p className="text-sm mt-2 font-medium">
-                    Price: {place.price_range}
-                  </p>
-                )}
-                {place.amenities && place.amenities.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs text-muted-foreground mb-1">Amenities:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {place.amenities.slice(0, 3).map((amenity) => (
-                        <span
-                          key={amenity}
-                          className="bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md text-xs"
-                        >
-                          {amenity}
-                        </span>
-                      ))}
-                      {place.amenities.length > 3 && (
-                        <span className="bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md text-xs">
-                          +{place.amenities.length - 3} more
-                        </span>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground line-clamp-3 mb-2">
+                      {place.description}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {place.is_hidden_gem && (
+                        <Badge variant="secondary" className="bg-filipino-teal/10 text-filipino-teal border-none">
+                          <Gem className="h-3 w-3 mr-1" /> Hidden Gem
+                        </Badge>
+                      )}
+                      {place.is_local_business && (
+                        <Badge variant="secondary" className="bg-filipino-terracotta/10 text-filipino-terracotta border-none">
+                          <Store className="h-3 w-3 mr-1" /> Local Business
+                        </Badge>
                       )}
                     </div>
-                  </div>
-                )}
-                {place.tags && place.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {place.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="bg-filipino-teal/10 text-filipino-deepTeal px-2 py-0.5 rounded-md text-xs"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                    
+                    {place.price_range && (
+                      <p className="text-sm font-medium">
+                        Price: {place.price_range}
+                      </p>
+                    )}
+                    
+                    {place.amenities && place.amenities.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs text-muted-foreground mb-1">Amenities:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {place.amenities.slice(0, 3).map((amenity) => (
+                            <span
+                              key={amenity}
+                              className="bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md text-xs"
+                            >
+                              {amenity}
+                            </span>
+                          ))}
+                          {place.amenities.length > 3 && (
+                            <span className="bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md text-xs">
+                              +{place.amenities.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {place.tags && place.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        {place.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="bg-filipino-teal/10 text-filipino-deepTeal px-2 py-0.5 rounded-md text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
