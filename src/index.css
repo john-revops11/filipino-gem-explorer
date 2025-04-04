@@ -21,14 +21,14 @@
     --primary-foreground: 0 0% 100%;
 
     /* Adjusted secondary color to complement primary */
-    --secondary: 210 64% 45%;
+    --secondary: 176 65% 40%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 38 33% 94%;
     --muted-foreground: 220 10% 45%;
 
-    /* Updated accent color to match logo */
-    --accent: 195 82% 45%;
+    /* Updated accent color to match logo and add teal */
+    --accent: 176 65% 45%;
     --accent-foreground: 220 10% 15%;
 
     --destructive: 0 84.2% 60.2%;
@@ -65,14 +65,14 @@
     --primary-foreground: 0 0% 100%;
 
     /* Adjusted secondary color to complement primary for dark mode */
-    --secondary: 210 64% 55%;
+    --secondary: 176 64% 50%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 10% 15%;
     --muted-foreground: 38 33% 80%;
 
     /* Updated accent color to match logo for dark mode */
-    --accent: 195 82% 55%;
+    --accent: 176 82% 55%;
     --accent-foreground: 220 10% 15%;
 
     --destructive: 0 62.8% 30.6%;

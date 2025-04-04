@@ -21,8 +21,12 @@ export default function VideoBackground({ children }: VideoBackgroundProps) {
           Your browser does not support the video tag.
         </video>
         
-        {/* Overlay to ensure text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-filipino-navy/70 via-filipino-navy/40 to-filipino-navy/80 z-10"></div>
+        {/* Enhanced overlay with gradient using new colors */}
+        <div className="absolute inset-0 bg-gradient-to-b from-filipino-navy/70 via-filipino-navy/40 to-filipino-navy/70 z-10"></div>
+        
+        {/* Color accent borders */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-filipino-teal via-filipino-yellow to-filipino-red z-20"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-filipino-red via-filipino-yellow to-filipino-teal z-20"></div>
       </div>
       
       {/* Content with higher z-index */}
