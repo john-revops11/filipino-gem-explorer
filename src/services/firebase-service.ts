@@ -88,18 +88,17 @@ export const firestoreService = {
   
   // Add a new document
   addDocument: async (collectionName: string, data: DocumentData) => {
-    // Convert DocumentData to a regular object before spreading
+    // Create an empty plain object to hold our data
     const plainData: Record<string, any> = {};
     
-    // Check if data exists and is an object before trying to iterate
     if (data && typeof data === 'object') {
-      // Convert to plain object by manually copying properties
-      Object.entries(Object(data)).forEach(([key, value]) => {
-        plainData[key] = value;
+      // Use a more direct approach to copy properties
+      Object.keys(data as any).forEach(key => {
+        plainData[key] = (data as any)[key];
       });
     }
     
-    // Add the document with the plain object and timestamps
+    // Add the document with plain object and timestamps
     const docRef = await addDoc(collection(firestore, collectionName), {
       ...plainData,
       createdAt: serverTimestamp(),
@@ -111,14 +110,13 @@ export const firestoreService = {
   
   // Update an existing document
   updateDocument: async (collectionName: string, docId: string, data: DocumentData) => {
-    // Convert DocumentData to a regular object before spreading
+    // Create an empty plain object to hold our data
     const plainData: Record<string, any> = {};
     
-    // Check if data exists and is an object before trying to iterate
     if (data && typeof data === 'object') {
-      // Convert to plain object by manually copying properties
-      Object.entries(Object(data)).forEach(([key, value]) => {
-        plainData[key] = value;
+      // Use a more direct approach to copy properties
+      Object.keys(data as any).forEach(key => {
+        plainData[key] = (data as any)[key];
       });
     }
     
@@ -164,14 +162,13 @@ export const realtimeDbService = {
   
   // Push new data to a list
   pushData: async (path: string, data: any) => {
-    // Convert data to a regular object before spreading
+    // Create an empty plain object to hold our data
     const plainData: Record<string, any> = {};
     
-    // Check if data exists and is an object before trying to iterate
     if (data && typeof data === 'object') {
-      // Convert to plain object by manually copying properties
-      Object.entries(Object(data)).forEach(([key, value]) => {
-        plainData[key] = value;
+      // Use a more direct approach to copy properties
+      Object.keys(data as any).forEach(key => {
+        plainData[key] = (data as any)[key];
       });
     }
     
