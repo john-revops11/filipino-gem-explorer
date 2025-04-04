@@ -3,7 +3,15 @@ import { Home, Map, Calendar, Bookmark, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export function BottomNav() {
-  const location = useLocation();
+  // Safely use router hooks
+  let location;
+  try {
+    location = useLocation();
+  } catch (e) {
+    // Fallback when not in a router context
+    location = { pathname: "/" };
+    console.warn("BottomNav rendered outside Router context");
+  }
   
   const navItems = [
     { icon: Home, label: "Home", path: "/" },

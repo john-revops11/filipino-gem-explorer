@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Bookmark } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Bookings() {
   return (
@@ -18,9 +19,11 @@ export default function Bookings() {
           <p className="text-muted-foreground text-center mb-6">
             Your bookings for activities, accommodations, and experiences will appear here.
           </p>
-          <Button className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">
-            Explore Activities
-          </Button>
+          <Link to="/explore">
+            <Button className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">
+              Explore Activities
+            </Button>
+          </Link>
         </div>
       </div>
       
