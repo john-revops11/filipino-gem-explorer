@@ -6,7 +6,8 @@ const categories = [
   { 
     id: "beaches", 
     name: "Beaches", 
-    emoji: "🏝️", 
+    emoji: "🌊", 
+    description: "Explore pristine white sand beaches",
     color: "bg-filipino-teal",
     hoverColor: "hover:bg-filipino-teal" 
   },
@@ -14,41 +15,47 @@ const categories = [
     id: "mountains", 
     name: "Mountains", 
     emoji: "🌋", 
+    description: "Discover majestic volcanoes and highlands",
     color: "bg-filipino-forest",
     hoverColor: "hover:bg-filipino-forest" 
   },
   { 
     id: "islands", 
     name: "Islands", 
-    emoji: "🏞️", 
+    emoji: "🏝️", 
+    description: "Visit stunning tropical islands",
     color: "bg-filipino-vibrantBlue",
     hoverColor: "hover:bg-filipino-vibrantBlue" 
   },
   { 
     id: "cultural", 
     name: "Cultural", 
-    emoji: "🎭", 
+    emoji: "🪅", 
+    description: "Experience authentic Filipino traditions",
     color: "bg-filipino-warmOchre",
     hoverColor: "hover:bg-filipino-warmOchre" 
   },
   { 
     id: "adventure", 
     name: "Adventure", 
-    emoji: "🛶", 
+    emoji: "🚣‍♀️", 
+    description: "Embark on thrilling outdoor activities",
     color: "bg-filipino-coral",
     hoverColor: "hover:bg-filipino-coral" 
   },
   { 
     id: "food", 
     name: "Filipino Cuisine", 
-    emoji: "🍲", 
+    emoji: "🥘", 
+    description: "Savor authentic local delicacies",
     color: "bg-filipino-vibrantRed",
     hoverColor: "hover:bg-filipino-vibrantRed" 
   },
   { 
     id: "festivals", 
     name: "Festivals", 
-    emoji: "💃", 
+    emoji: "🎭", 
+    description: "Join colorful local celebrations",
     color: "bg-filipino-vibrantGreen",
     hoverColor: "hover:bg-filipino-vibrantGreen" 
   },
@@ -56,6 +63,7 @@ const categories = [
     id: "diving", 
     name: "Diving", 
     emoji: "🐠", 
+    description: "Explore vibrant underwater ecosystems",
     color: "bg-filipino-vibrantBlue",
     hoverColor: "hover:bg-filipino-vibrantBlue" 
   },
