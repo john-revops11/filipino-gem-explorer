@@ -29,7 +29,7 @@ const App = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check if onboarding is completed
+  // Check if onboarding is completed and set up auth state listener
   useEffect(() => {
     const onboardingStatus = localStorage.getItem("onboardingComplete");
     setIsOnboardingComplete(onboardingStatus === "true");
@@ -43,17 +43,7 @@ const App = () => {
     return () => unsubscribe();
   }, []);
 
-  // Determine what to show while checking auth state
-  if (isCheckingAuth) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  }
-
-  // Handle onboarding or direct login path
-  const handleOnboardingComplete = () => {
-    setIsOnboardingComplete(true);
-  };
-
-  // Create sample accounts during development mode
+  // Create sample accounts during development mode - moved outside conditional rendering
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       // This is just for demo purposes - in a real app, users would be created through proper registration
@@ -62,6 +52,16 @@ const App = () => {
       console.log(" - Admin user: admin@example.com / admin123");
     }
   }, []);
+
+  // Handle onboarding or direct login path
+  const handleOnboardingComplete = () => {
+    setIsOnboardingComplete(true);
+  };
+
+  // Determine what to show while checking auth state
+  if (isCheckingAuth) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
