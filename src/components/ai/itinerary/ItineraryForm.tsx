@@ -54,7 +54,9 @@ export function ItineraryForm({
   ];
 
   const handleTagClick = (tag: string) => {
-    setPreferences(prev => prev + (prev ? ", " : "") + tag);
+    // Fix: Instead of using a function inside setPreferences, directly compute the new value
+    const newPreferences = preferences ? `${preferences}, ${tag}` : tag;
+    setPreferences(newPreferences);
   };
 
   return (
