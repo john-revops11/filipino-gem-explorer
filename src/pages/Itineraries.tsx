@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -20,7 +19,7 @@ import databaseService, { Itinerary, Location } from "@/services/database-servic
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth"; // Correct import for useAuth
+import { useAuth } from "@/hooks/use-auth";
 import { Link, useNavigate } from "react-router-dom";
 import { ItineraryCard } from "@/components/itinerary/ItineraryCard";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -124,17 +123,13 @@ export default function Itineraries() {
         days: newItinerary.days
       });
       
-      // Add additional metadata
       itineraryData.userId_created = auth.user.uid;
       
-      // Save the generated itinerary
       const itineraryId = await databaseService.addItinerary(itineraryData);
       
-      // Close dialog and show success message
       setIsCreateDialogOpen(false);
       toast.success("Itinerary generated successfully!");
       
-      // Reset form
       setNewItinerary({
         name: "",
         description: "",
@@ -142,10 +137,8 @@ export default function Itineraries() {
         days: 3
       });
       
-      // Refresh itineraries list
       queryClient.invalidateQueries({ queryKey: ['itineraries'] });
       
-      // Navigate to the new itinerary
       navigate(`/itineraries/${itineraryId}`);
     } catch (error) {
       console.error("Error generating itinerary:", error);
@@ -158,7 +151,6 @@ export default function Itineraries() {
   const getFilteredItineraries = () => {
     let filtered = [...itineraries];
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((itinerary: Itinerary) => 
@@ -168,7 +160,6 @@ export default function Itineraries() {
       );
     }
     
-    // Filter by tab
     if (currentTab === "my-itineraries" && auth.user) {
       filtered = filtered.filter((itinerary: Itinerary) => 
         itinerary.userId_created === auth.user?.uid
@@ -458,7 +449,7 @@ export default function Itineraries() {
           )
         ) : (
           <EmptyState 
-            icon={<CalendarDays className="h-12 w-12 text-muted-foreground" />}
+            icon={CalendarDays}
             title="No itineraries found"
             description={
               searchQuery 
