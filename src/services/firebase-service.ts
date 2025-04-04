@@ -93,12 +93,10 @@ export const firestoreService = {
     
     // Only try to extract properties if data is an object
     if (data && typeof data === 'object' && data !== null) {
-      // Safely copy properties from data to plainData
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          plainData[key] = data[key];
-        }
-      }
+      // Safely copy properties from data to plainData using Object.entries
+      Object.entries(Object(data)).forEach(([key, value]) => {
+        plainData[key] = value;
+      });
     }
     
     // Add the document with the plain data object and timestamps
@@ -118,12 +116,10 @@ export const firestoreService = {
     
     // Only try to extract properties if data is an object
     if (data && typeof data === 'object' && data !== null) {
-      // Safely copy properties from data to plainData
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          plainData[key] = data[key];
-        }
-      }
+      // Safely copy properties from data to plainData using Object.entries
+      Object.entries(Object(data)).forEach(([key, value]) => {
+        plainData[key] = value;
+      });
     }
     
     const docRef = doc(firestore, collectionName, docId);
@@ -173,12 +169,10 @@ export const realtimeDbService = {
     
     // Only try to extract properties if data is an object
     if (data && typeof data === 'object' && data !== null) {
-      // Safely copy properties from data to plainData
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          plainData[key] = data[key];
-        }
-      }
+      // Safely copy properties from data to plainData using Object.entries
+      Object.entries(Object(data)).forEach(([key, value]) => {
+        plainData[key] = value;
+      });
     }
     
     const listRef = ref(database, path);
