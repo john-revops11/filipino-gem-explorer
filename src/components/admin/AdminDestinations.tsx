@@ -36,7 +36,7 @@ import { Wand, Plus, Edit, Trash2 } from "lucide-react";
 
 export function AdminDestinations() {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [newLocation, setNewLocation] = useState<Partial<Location>>({
+  const [newLocation, setNewLocation] = useState<Location>({
     name: "",
     region: "",
     description: "",
@@ -127,10 +127,13 @@ export function AdminDestinations() {
 
     // If no image is provided, use a placeholder
     if (!newLocation.image) {
-      newLocation.image = "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80";
+      setNewLocation({
+        ...newLocation,
+        image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80"
+      });
     }
 
-    createLocationMutation.mutate(newLocation as Location);
+    createLocationMutation.mutate(newLocation);
   };
 
   const regionOptions = ["Luzon", "Visayas", "Mindanao"];

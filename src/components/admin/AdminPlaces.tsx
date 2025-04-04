@@ -78,10 +78,11 @@ const PLACE_CATEGORIES = {
 export function AdminPlaces() {
   const [openDialog, setOpenDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
-  const [newPlace, setNewPlace] = useState<Partial<Place>>({
+  const [newPlace, setNewPlace] = useState<Place>({
     name: "",
     type: "hotel",
     description: "",
+    location: "",
     location_id: "",
     tags: [],
     amenities: [],
@@ -115,6 +116,7 @@ export function AdminPlaces() {
         name: "",
         type: "hotel",
         description: "",
+        location: "",
         location_id: "",
         tags: [],
         amenities: [],
@@ -175,7 +177,7 @@ export function AdminPlaces() {
       newPlace.image = "https://images.unsplash.com/photo-1596386461350-326ccb383e9f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80";
     }
 
-    createPlaceMutation.mutate(newPlace as Place);
+    createPlaceMutation.mutate(newPlace);
   };
 
   // Get location name by ID
@@ -195,6 +197,7 @@ export function AdminPlaces() {
 
   // Filter places based on selected tab
   const getFilteredPlaces = () => {
+    if (!places) return [];
     if (activeTab === "all") return places;
     if (activeTab === "hidden_gems") return places.filter(place => place.is_hidden_gem);
     if (activeTab === "local_businesses") return places.filter(place => place.is_local_business);
@@ -307,7 +310,7 @@ export function AdminPlaces() {
                 <Label htmlFor="contact">Contact</Label>
                 <Input
                   id="contact"
-                  value={newPlace.contact || ""}
+                  value={typeof newPlace.contact === 'string' ? newPlace.contact : ''}
                   onChange={(e) => setNewPlace({ ...newPlace, contact: e.target.value })}
                   placeholder="e.g., +63 123 456 7890"
                 />
@@ -380,7 +383,7 @@ export function AdminPlaces() {
                     id="tags"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
-                    placeholder="e.g., Luxury, Family-friendly"
+                    placeholder="e.g., Family-friendly, Luxury"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -413,31 +416,36 @@ export function AdminPlaces() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="is_hidden_gem"
-                    checked={newPlace.is_hidden_gem || false}
-                    onChange={(e) => setNewPlace({ ...newPlace, is_hidden_gem: e.target.checked })}
-                    className="h-4 w-4 rounded border-gray-300 text-filipino-teal focus:ring-filipino-teal"
-                  />
-                  <Label htmlFor="is_hidden_gem" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Hidden Gem
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="is_local_business"
-                    checked={newPlace.is_local_business || false}
-                    onChange={(e) => setNewPlace({ ...newPlace, is_local_business: e.target.checked })}
-                    className="h-4 w-4 rounded border-gray-300 text-filipino-teal focus:ring-filipino-teal"
-                  />
-                  <Label htmlFor="is_local_business" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Local Business
-                  </Label>
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="is_hidden_gem">Is this a Hidden Gem?</Label>
+                <Select
+                  value={newPlace.is_hidden_gem ? "true" : "false"}
+                  onValueChange={(value) => setNewPlace({ ...newPlace, is_hidden_gem: value === "true" })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Yes</SelectItem>
+                    <SelectItem value="false">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="is_local_business">Is this a Local Business?</Label>
+                <Select
+                  value={newPlace.is_local_business ? "true" : "false"}
+                  onValueChange={(value) => setNewPlace({ ...newPlace, is_local_business: value === "true" })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Yes</SelectItem>
+                    <SelectItem value="false">No</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -453,18 +461,19 @@ export function AdminPlaces() {
         </Dialog>
       </div>
 
-      <Tabs defaultValue="all" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 lg:grid-cols-7 mb-6">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="hotel">Hotels</TabsTrigger>
-          <TabsTrigger value="resort">Resorts</TabsTrigger>
-          <TabsTrigger value="tourist_spot">Tourist Spots</TabsTrigger>
-          <TabsTrigger value="restaurant">Restaurants</TabsTrigger>
+      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="flex flex-wrap">
+          <TabsTrigger value="all">All Places</TabsTrigger>
+          {Object.keys(PLACE_CATEGORIES).map(key => (
+            <TabsTrigger key={key} value={key}>
+              {PLACE_CATEGORIES[key as keyof typeof PLACE_CATEGORIES].label}
+            </TabsTrigger>
+          ))}
           <TabsTrigger value="hidden_gems">Hidden Gems</TabsTrigger>
           <TabsTrigger value="local_businesses">Local Businesses</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab}>
+        <TabsContent value={activeTab} className="space-y-4">
           {isLoading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin h-8 w-8 border-4 border-filipino-teal border-t-transparent rounded-full"></div>
@@ -475,23 +484,16 @@ export function AdminPlaces() {
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredPlaces.map((place: Place) => (
-                <Card key={place.id} className="overflow-hidden">
-                  <div className="aspect-video w-full">
-                    <img
-                      src={place.image || "https://images.unsplash.com/photo-1596386461350-326ccb383e9f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"}
-                      alt={place.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardHeader className="pb-2">
+              {filteredPlaces.map((place) => (
+                <Card key={place.id}>
+                  <CardHeader>
                     <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2">
-                        {getPlaceIcon(place.type)}
-                        <div>
-                          <CardTitle className="text-lg">{place.name}</CardTitle>
-                          <CardDescription>{getLocationName(place.location_id)}</CardDescription>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          {getPlaceIcon(place.type)}
+                          <CardTitle className="line-clamp-1">{place.name}</CardTitle>
                         </div>
+                        <CardDescription>{getLocationName(place.location_id || '')}</CardDescription>
                       </div>
                       <div className="flex space-x-2">
                         <Button variant="ghost" size="icon">
@@ -502,58 +504,32 @@ export function AdminPlaces() {
                         </Button>
                       </div>
                     </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {place.is_hidden_gem && (
+                        <Badge variant="outline" className="bg-purple-100 text-purple-800 hover:bg-purple-200">Hidden Gem</Badge>
+                      )}
+                      {place.is_local_business && (
+                        <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200">Local Business</Badge>
+                      )}
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-3 mb-2">
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground line-clamp-3">
                       {place.description}
                     </p>
                     
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {place.is_hidden_gem && (
-                        <Badge variant="secondary" className="bg-filipino-teal/10 text-filipino-teal border-none">
-                          <Gem className="h-3 w-3 mr-1" /> Hidden Gem
-                        </Badge>
-                      )}
-                      {place.is_local_business && (
-                        <Badge variant="secondary" className="bg-filipino-terracotta/10 text-filipino-terracotta border-none">
-                          <Store className="h-3 w-3 mr-1" /> Local Business
-                        </Badge>
-                      )}
-                    </div>
-                    
                     {place.price_range && (
-                      <p className="text-sm font-medium">
-                        Price: {place.price_range}
-                      </p>
-                    )}
-                    
-                    {place.amenities && place.amenities.length > 0 && (
-                      <div className="mt-3">
-                        <p className="text-xs text-muted-foreground mb-1">Amenities:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {place.amenities.slice(0, 3).map((amenity) => (
-                            <span
-                              key={amenity}
-                              className="bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md text-xs"
-                            >
-                              {amenity}
-                            </span>
-                          ))}
-                          {place.amenities.length > 3 && (
-                            <span className="bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md text-xs">
-                              +{place.amenities.length - 3} more
-                            </span>
-                          )}
-                        </div>
+                      <div className="text-sm text-muted-foreground">
+                        Price Range: {place.price_range}
                       </div>
                     )}
                     
                     {place.tags && place.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-3">
+                      <div className="flex flex-wrap gap-2">
                         {place.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="bg-filipino-teal/10 text-filipino-deepTeal px-2 py-0.5 rounded-md text-xs"
+                            className="bg-muted text-muted-foreground px-2 py-1 rounded-md text-xs"
                           >
                             {tag}
                           </span>
