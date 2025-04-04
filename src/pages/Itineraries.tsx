@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, MapPin, ChevronRight, Clock } from "lucide-react";
+import { Plus, Calendar, MapPin, ChevronRight, Clock, Palmtree, Filter, Flag, CalendarDays } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -21,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+import { ItineraryCard } from "@/components/itinerary/ItineraryCard";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 // Mock data for itineraries
 const mockItineraries = [
@@ -42,6 +44,16 @@ const mockItineraries = [
     locations: ["Vigan", "Ilocos Sur"],
     activities: 8,
     coverImage: "https://images.unsplash.com/photo-1646622566863-1e2c04784ae1?q=80&w=2071",
+    status: "planning"
+  },
+  {
+    id: "3",
+    title: "Island Hopping in Coron",
+    dateRange: "July 20-25, 2025",
+    days: 6,
+    locations: ["Coron", "Palawan"],
+    activities: 15,
+    coverImage: "https://images.unsplash.com/photo-1573790387438-4da905039392?q=80&w=725",
     status: "planning"
   }
 ];
@@ -144,281 +156,306 @@ export default function Itineraries() {
   };
 
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen pb-16 bg-gradient-to-b from-white to-filipino-sand/10">
       <Header title="Itineraries" />
       
       <div className="p-4">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-full mb-6 bg-filipino-terracotta hover:bg-filipino-terracotta/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Itinerary
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Itinerary</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="itinerary-name">Itinerary Name</Label>
-                <Input 
-                  id="itinerary-name" 
-                  placeholder="e.g., Weekend Getaway to Palawan" 
-                  value={newItinerary.title}
-                  onChange={(e) => setNewItinerary({...newItinerary, title: e.target.value})}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-filipino-darkGray">Your Adventures</h1>
+          
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-filipino-terracotta hover:bg-filipino-terracotta/90 gap-1">
+                <Plus className="h-4 w-4" />
+                New Trip
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle className="text-center text-filipino-darkGray">Create New Adventure</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="start-date">Start Date</Label>
+                  <Label htmlFor="itinerary-name">Trip Name</Label>
                   <Input 
-                    id="start-date" 
-                    type="date" 
-                    value={newItinerary.startDate}
-                    onChange={(e) => setNewItinerary({...newItinerary, startDate: e.target.value})}
+                    id="itinerary-name" 
+                    placeholder="e.g., Weekend Getaway to Palawan" 
+                    value={newItinerary.title}
+                    onChange={(e) => setNewItinerary({...newItinerary, title: e.target.value})}
+                    className="border-filipino-teal/30 focus-visible:ring-filipino-teal"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="end-date">End Date</Label>
-                  <Input 
-                    id="end-date" 
-                    type="date" 
-                    value={newItinerary.endDate}
-                    onChange={(e) => setNewItinerary({...newItinerary, endDate: e.target.value})}
-                  />
-                </div>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label>Destinations</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto">
-                  {popularDestinations.map((destination) => (
-                    <div key={destination.id} className="flex items-start space-x-2">
-                      <Checkbox 
-                        id={`destination-${destination.id}`} 
-                        checked={newItinerary.destinations.includes(destination.id)}
-                        onCheckedChange={() => handleDestinationToggle(destination.id)}
-                      />
-                      <div className="grid gap-1.5 leading-none">
-                        <label
-                          htmlFor={`destination-${destination.id}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {destination.name}
-                        </label>
-                        <p className="text-xs text-muted-foreground">
-                          {destination.region}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea 
-                  id="notes" 
-                  placeholder="Any special requirements or ideas for this trip..." 
-                  value={newItinerary.notes}
-                  onChange={(e) => setNewItinerary({...newItinerary, notes: e.target.value})}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button onClick={handleCreateItinerary} className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">Create</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        
-        {itineraries.length > 0 ? (
-          <Tabs defaultValue="all" className="mb-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-              <TabsTrigger value="planning">Planning</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="all" className="mt-4 space-y-4">
-              {itineraries.map((itinerary) => (
-                <ItineraryCard key={itinerary.id} itinerary={itinerary} />
-              ))}
-            </TabsContent>
-            
-            <TabsContent value="upcoming" className="mt-4 space-y-4">
-              {itineraries
-                .filter((itinerary) => itinerary.status === "upcoming")
-                .map((itinerary) => (
-                  <ItineraryCard key={itinerary.id} itinerary={itinerary} />
-                ))}
-            </TabsContent>
-            
-            <TabsContent value="planning" className="mt-4 space-y-4">
-              {itineraries
-                .filter((itinerary) => itinerary.status === "planning")
-                .map((itinerary) => (
-                  <ItineraryCard key={itinerary.id} itinerary={itinerary} />
-                ))}
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <div className="flex justify-center items-center flex-col py-12">
-            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-              <Calendar className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-medium mb-2">No Itineraries Yet</h3>
-            <p className="text-muted-foreground text-center mb-6">
-              Start planning your adventure in the Philippines by creating your first itinerary.
-            </p>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Itinerary
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                {/* Same dialog content as above */}
-                <DialogHeader>
-                  <DialogTitle>Create New Itinerary</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
+                
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="itinerary-name-first">Itinerary Name</Label>
-                    <Input 
-                      id="itinerary-name-first" 
-                      placeholder="e.g., Weekend Getaway to Palawan" 
-                      value={newItinerary.title}
-                      onChange={(e) => setNewItinerary({...newItinerary, title: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="start-date-first">Start Date</Label>
+                    <Label htmlFor="start-date">Start Date</Label>
+                    <div className="relative">
+                      <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input 
-                        id="start-date-first" 
+                        id="start-date" 
                         type="date" 
                         value={newItinerary.startDate}
                         onChange={(e) => setNewItinerary({...newItinerary, startDate: e.target.value})}
+                        className="pl-10 border-filipino-teal/30 focus-visible:ring-filipino-teal"
                       />
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="end-date-first">End Date</Label>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="end-date">End Date</Label>
+                    <div className="relative">
+                      <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input 
-                        id="end-date-first" 
+                        id="end-date" 
                         type="date" 
                         value={newItinerary.endDate}
                         onChange={(e) => setNewItinerary({...newItinerary, endDate: e.target.value})}
+                        className="pl-10 border-filipino-teal/30 focus-visible:ring-filipino-teal"
                       />
                     </div>
                   </div>
-                  
-                  <div className="grid gap-2">
-                    <Label>Destinations</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto">
-                      {popularDestinations.map((destination) => (
-                        <div key={destination.id} className="flex items-start space-x-2">
-                          <Checkbox 
-                            id={`destination-first-${destination.id}`} 
-                            checked={newItinerary.destinations.includes(destination.id)}
-                            onCheckedChange={() => handleDestinationToggle(destination.id)}
-                          />
-                          <div className="grid gap-1.5 leading-none">
-                            <label
-                              htmlFor={`destination-first-${destination.id}`}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              {destination.name}
-                            </label>
-                            <p className="text-xs text-muted-foreground">
-                              {destination.region}
-                            </p>
-                          </div>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label className="flex items-center gap-1">
+                    <Flag className="h-4 w-4 text-filipino-terracotta" />
+                    Destinations
+                  </Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto bg-filipino-sand/10 rounded-md p-3">
+                    {popularDestinations.map((destination) => (
+                      <div key={destination.id} className="flex items-start space-x-2">
+                        <Checkbox 
+                          id={`destination-${destination.id}`} 
+                          checked={newItinerary.destinations.includes(destination.id)}
+                          onCheckedChange={() => handleDestinationToggle(destination.id)}
+                          className="data-[state=checked]:bg-filipino-teal data-[state=checked]:border-filipino-teal"
+                        />
+                        <div className="grid gap-1.5 leading-none">
+                          <label
+                            htmlFor={`destination-${destination.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {destination.name}
+                          </label>
+                          <p className="text-xs text-muted-foreground">
+                            {destination.region}
+                          </p>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="notes-first">Notes</Label>
-                    <Textarea 
-                      id="notes-first" 
-                      placeholder="Any special requirements or ideas for this trip..." 
-                      value={newItinerary.notes}
-                      onChange={(e) => setNewItinerary({...newItinerary, notes: e.target.value})}
-                    />
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <DialogClose asChild>
-                    <Button onClick={handleCreateItinerary} className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">Create</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="notes" className="flex items-center gap-1">
+                    <Palmtree className="h-4 w-4 text-filipino-terracotta" />
+                    Trip Notes
+                  </Label>
+                  <Textarea 
+                    id="notes" 
+                    placeholder="Any special requirements or ideas for this trip..." 
+                    value={newItinerary.notes}
+                    onChange={(e) => setNewItinerary({...newItinerary, notes: e.target.value})}
+                    className="min-h-[100px] border-filipino-teal/30 focus-visible:ring-filipino-teal"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button onClick={handleCreateItinerary} className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">
+                    Create Adventure
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        {itineraries.length > 0 ? (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 bg-filipino-sand/20">
+                  <TabsTrigger 
+                    value="all"
+                    className="data-[state=active]:bg-filipino-teal data-[state=active]:text-white"
+                  >
+                    All
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="upcoming"
+                    className="data-[state=active]:bg-filipino-teal data-[state=active]:text-white"
+                  >
+                    Upcoming
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="planning"
+                    className="data-[state=active]:bg-filipino-teal data-[state=active]:text-white"
+                  >
+                    Planning
+                  </TabsTrigger>
+                </TabsList>
+                
+                <div className="flex items-center justify-end mt-4">
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <Filter className="h-4 w-4" />
+                    Filter
+                  </Button>
+                </div>
+                
+                <TabsContent value="all" className="mt-4 space-y-4 animate-fade-in">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {itineraries.map((itinerary) => (
+                      <ItineraryCard key={itinerary.id} itinerary={itinerary} />
+                    ))}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="upcoming" className="mt-4 space-y-4 animate-fade-in">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {itineraries
+                      .filter((itinerary) => itinerary.status === "upcoming")
+                      .map((itinerary) => (
+                        <ItineraryCard key={itinerary.id} itinerary={itinerary} />
+                      ))}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="planning" className="mt-4 space-y-4 animate-fade-in">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {itineraries
+                      .filter((itinerary) => itinerary.status === "planning")
+                      .map((itinerary) => (
+                        <ItineraryCard key={itinerary.id} itinerary={itinerary} />
+                      ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
+        ) : (
+          <EmptyState 
+            icon={Calendar}
+            title="No Adventures Yet"
+            description="Start planning your adventure in the Philippines by creating your first itinerary."
+            action={
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Adventure
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  {/* Same dialog content as above */}
+                  <DialogHeader>
+                    <DialogTitle className="text-center text-filipino-darkGray">Create New Adventure</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="itinerary-name-first">Trip Name</Label>
+                      <Input 
+                        id="itinerary-name-first" 
+                        placeholder="e.g., Weekend Getaway to Palawan" 
+                        value={newItinerary.title}
+                        onChange={(e) => setNewItinerary({...newItinerary, title: e.target.value})}
+                        className="border-filipino-teal/30 focus-visible:ring-filipino-teal"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="start-date-first">Start Date</Label>
+                        <div className="relative">
+                          <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            id="start-date-first" 
+                            type="date" 
+                            value={newItinerary.startDate}
+                            onChange={(e) => setNewItinerary({...newItinerary, startDate: e.target.value})}
+                            className="pl-10 border-filipino-teal/30 focus-visible:ring-filipino-teal"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="end-date-first">End Date</Label>
+                        <div className="relative">
+                          <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            id="end-date-first" 
+                            type="date" 
+                            value={newItinerary.endDate}
+                            onChange={(e) => setNewItinerary({...newItinerary, endDate: e.target.value})}
+                            className="pl-10 border-filipino-teal/30 focus-visible:ring-filipino-teal"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label className="flex items-center gap-1">
+                        <Flag className="h-4 w-4 text-filipino-terracotta" />
+                        Destinations
+                      </Label>
+                      <div className="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto bg-filipino-sand/10 rounded-md p-3">
+                        {popularDestinations.map((destination) => (
+                          <div key={destination.id} className="flex items-start space-x-2">
+                            <Checkbox 
+                              id={`destination-first-${destination.id}`} 
+                              checked={newItinerary.destinations.includes(destination.id)}
+                              onCheckedChange={() => handleDestinationToggle(destination.id)}
+                              className="data-[state=checked]:bg-filipino-teal data-[state=checked]:border-filipino-teal"
+                            />
+                            <div className="grid gap-1.5 leading-none">
+                              <label
+                                htmlFor={`destination-first-${destination.id}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {destination.name}
+                              </label>
+                              <p className="text-xs text-muted-foreground">
+                                {destination.region}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="notes-first" className="flex items-center gap-1">
+                        <Palmtree className="h-4 w-4 text-filipino-terracotta" />
+                        Trip Notes
+                      </Label>
+                      <Textarea 
+                        id="notes-first" 
+                        placeholder="Any special requirements or ideas for this trip..." 
+                        value={newItinerary.notes}
+                        onChange={(e) => setNewItinerary({...newItinerary, notes: e.target.value})}
+                        className="min-h-[100px] border-filipino-teal/30 focus-visible:ring-filipino-teal"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <DialogClose asChild>
+                      <Button onClick={handleCreateItinerary} className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">
+                        Create Adventure
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            }
+          />
         )}
       </div>
       
       <BottomNav />
     </div>
-  );
-}
-
-// Itinerary Card Component
-function ItineraryCard({ itinerary }: { itinerary: any }) {
-  return (
-    <Card className="overflow-hidden">
-      <div className="h-32 relative">
-        <img 
-          src={itinerary.coverImage} 
-          alt={itinerary.title}
-          className="w-full h-full object-cover"
-        />
-        <Badge 
-          className="absolute top-2 right-2" 
-          style={{
-            backgroundColor: itinerary.status === 'upcoming' 
-              ? 'var(--filipino-teal)' 
-              : 'var(--filipino-vibrantBlue)'
-          }}
-        >
-          {itinerary.status === 'upcoming' ? 'Upcoming' : 'Planning'}
-        </Badge>
-      </div>
-      <CardContent className="p-4">
-        <h3 className="font-semibold text-lg mb-2">{itinerary.title}</h3>
-        
-        <div className="grid grid-cols-2 gap-y-2 text-sm mb-4">
-          <div className="flex items-center text-muted-foreground">
-            <Calendar className="h-4 w-4 mr-2" /> 
-            {itinerary.dateRange}
-          </div>
-          <div className="flex items-center text-muted-foreground">
-            <Clock className="h-4 w-4 mr-2" /> 
-            {itinerary.days} days
-          </div>
-          <div className="flex items-center text-muted-foreground col-span-2">
-            <MapPin className="h-4 w-4 mr-2" /> 
-            {itinerary.locations.join(', ')}
-          </div>
-        </div>
-        
-        <Button className="w-full mt-2" variant="outline">
-          View Details <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      </CardContent>
-    </Card>
   );
 }
