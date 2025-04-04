@@ -1,7 +1,15 @@
 
 import { auth, database, firestore } from "./firebase";
-import { ref, set, get, push, remove } from "firebase/database";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { ref, set, get, push, remove, query, orderByChild, equalTo } from "firebase/database";
+import { 
+  collection, 
+  addDoc, 
+  serverTimestamp, 
+  getDocs, 
+  where, 
+  query as firestoreQuery 
+} from "firebase/firestore";
+import { toast } from "sonner";
 
 // Define types based on the database structure
 export interface Location {
@@ -30,6 +38,9 @@ export interface Itinerary {
   is_public: boolean;
   created_at: string;
   updated_at: string;
+  duration?: string; // Number of days
+  destination?: string; // Main destination
+  image?: string; // Cover image URL
 }
 
 const databaseService = {
@@ -58,6 +69,9 @@ const databaseService = {
       return docRef.id;
     } catch (error) {
       console.error("Error saving itinerary:", error);
+      toast.error("Failed to save itinerary", {
+        description: "There was an error saving your itinerary. Please try again."
+      });
       throw error;
     }
   },
@@ -76,7 +90,84 @@ const databaseService = {
       }
     } catch (error) {
       console.error("Error getting itinerary:", error);
+      toast.error("Failed to retrieve itinerary", {
+        description: "There was an error loading the itinerary. Please try again."
+      });
       throw error;
+    }
+  },
+
+  // Get user itineraries
+  getUserItineraries: async (userId: string) => {
+    try {
+      if (!userId) {
+        console.log("No user ID provided");
+        return [];
+      }
+
+      // Get from Firestore
+      const itinerariesQuery = firestoreQuery(
+        collection(firestore, 'itineraries'),
+        where('created_by', '==', userId)
+      );
+      
+      const querySnapshot = await getDocs(itinerariesQuery);
+      const itineraries: any[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        itineraries.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return itineraries;
+    } catch (error) {
+      console.error("Error getting user itineraries:", error);
+      toast.error("Failed to load your itineraries", {
+        description: "There was an error retrieving your saved itineraries. Please try again."
+      });
+      throw error;
+    }
+  },
+
+  // Save itinerary from AI generation
+  saveGeneratedItinerary: async (destination: string, days: string, content: string, userId: string) => {
+    try {
+      if (!userId) {
+        toast.error("You need to be logged in to save itineraries", {
+          description: "Please sign in or create an account to save this itinerary."
+        });
+        return null;
+      }
+
+      const itineraryData: Itinerary = {
+        name: `${days}-Day Itinerary for ${destination}`,
+        description: `AI-generated ${days}-day travel plan for ${destination}`,
+        days: [],
+        location: {
+          region_id: "",
+          province_id: "",
+          city_id: ""
+        },
+        tags: ["AI-generated"],
+        content: content,
+        created_by: userId,
+        is_public: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        duration: days,
+        destination: destination,
+        image: `/assets/destinations/${destination.toLowerCase().replace(/\s+/g, '-')}.jpg` // Default image path
+      };
+
+      return await databaseService.saveItinerary(itineraryData);
+    } catch (error) {
+      console.error("Error saving generated itinerary:", error);
+      toast.error("Failed to save itinerary", {
+        description: "There was an error saving your generated itinerary. Please try again."
+      });
+      return null;
     }
   },
 
@@ -123,6 +214,9 @@ const databaseService = {
       return itineraryId;
     } catch (error) {
       console.error("Error saving complete itinerary:", error);
+      toast.error("Failed to save complete itinerary", {
+        description: "There was an error saving your itinerary details. Please try again."
+      });
       throw error;
     }
   },

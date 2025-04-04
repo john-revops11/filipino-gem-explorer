@@ -9,7 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Share2, Download, Bookmark } from "lucide-react";
+import { Loader2, Share2, Download, Bookmark, BookmarkCheck } from "lucide-react";
+import { toast } from "sonner";
 
 interface ItineraryResultProps {
   destination: string;
@@ -26,6 +27,62 @@ export function ItineraryResult({
   onSave,
   isSaving,
 }: ItineraryResultProps) {
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSave = () => {
+    onSave();
+    setIsSaved(true);
+    toast.success("Itinerary saved successfully!", {
+      description: `Your ${days}-day itinerary for ${destination} has been saved to your profile.`,
+    });
+  };
+
+  const handleDownload = () => {
+    // Create a blob from the itinerary content
+    const blob = new Blob([itineraryContent], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    
+    // Create a temporary link element
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${destination}-${days}-day-itinerary.html`;
+    
+    // Trigger the download
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success("Itinerary downloaded", {
+      description: "Your itinerary has been downloaded successfully."
+    });
+  };
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${days}-Day Itinerary for ${destination}`,
+          text: `Check out this ${days}-day itinerary for ${destination}!`,
+          url: window.location.href,
+        });
+      } else {
+        // Fallback to copy to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Link copied to clipboard!", {
+          description: "Share this link with friends and family."
+        });
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      toast.error("Unable to share", {
+        description: "There was an error trying to share this itinerary."
+      });
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-filipino-teal/10 to-filipino-deepTeal/5 border-b">
@@ -37,10 +94,22 @@ export function ItineraryResult({
             </CardDescription>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" size="icon" className="h-8 w-8">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8" 
+              onClick={handleShare}
+              title="Share itinerary"
+            >
               <Share2 className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8" 
+              onClick={handleDownload}
+              title="Download itinerary"
+            >
               <Download className="h-4 w-4" />
             </Button>
           </div>
@@ -58,14 +127,19 @@ export function ItineraryResult({
           Add to Favorites
         </Button>
         <Button 
-          onClick={onSave}
-          disabled={isSaving}
+          onClick={handleSave}
+          disabled={isSaving || isSaved}
           className="bg-filipino-teal hover:bg-filipino-teal/90 text-white gap-2"
         >
           {isSaving ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               Saving...
+            </>
+          ) : isSaved ? (
+            <>
+              <BookmarkCheck className="h-4 w-4" />
+              Saved
             </>
           ) : (
             <>
