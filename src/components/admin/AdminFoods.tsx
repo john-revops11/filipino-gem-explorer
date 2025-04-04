@@ -212,7 +212,7 @@ export function AdminFoods() {
         <h2 className="text-2xl font-bold">Foods</h2>
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-filipino-maroon hover:bg-filipino-maroon/90">
               <Plus className="mr-2 h-4 w-4" />
               Add Food Item
             </Button>
@@ -360,7 +360,7 @@ export function AdminFoods() {
               <Button variant="outline" onClick={() => setOpenDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateFood}>
+              <Button onClick={handleCreateFood} className="bg-filipino-maroon hover:bg-filipino-maroon/90">
                 Save Food Item
               </Button>
             </DialogFooter>
@@ -370,7 +370,7 @@ export function AdminFoods() {
 
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-filipino-teal border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-8 w-8 border-4 border-filipino-maroon border-t-transparent rounded-full"></div>
         </div>
       ) : foods.length === 0 ? (
         <div className="text-center py-12">
@@ -405,7 +405,7 @@ export function AdminFoods() {
                 
                 {food.price_range && (
                   <div className="flex items-center text-sm text-muted-foreground">
-                    <UtensilsCrossed className="h-4 w-4 mr-1" />
+                    <UtensilsCrossed className="h-4 w-4 mr-1 text-filipino-maroon" />
                     {food.price_range}
                   </div>
                 )}
@@ -415,7 +415,7 @@ export function AdminFoods() {
                     {food.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="bg-muted text-muted-foreground px-2 py-1 rounded-md text-xs"
+                        className="bg-filipino-maroon/10 text-filipino-maroon px-2 py-1 rounded-md text-xs"
                       >
                         {tag}
                       </span>

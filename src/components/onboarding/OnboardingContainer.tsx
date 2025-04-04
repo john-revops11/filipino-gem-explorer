@@ -64,7 +64,7 @@ export default function OnboardingContainer({ onComplete }: { onComplete: () => 
                 <div 
                   key={step}
                   className={`h-2 w-${step === currentStep ? '8' : '2'} rounded-full ${
-                    step <= currentStep ? 'bg-filipino-terracotta' : 'bg-white/30'
+                    step <= currentStep ? 'bg-filipino-goldenrod' : 'bg-white/30'
                   }`}
                 />
               ))}
@@ -88,7 +88,7 @@ export default function OnboardingContainer({ onComplete }: { onComplete: () => 
             
             <Button 
               onClick={handleNext} 
-              className="flex-1 bg-filipino-terracotta hover:bg-filipino-terracotta/90"
+              className="flex-1 bg-filipino-goldenrod hover:bg-filipino-goldenrod/90"
             >
               {currentStep === 3 ? "Get Started" : "Continue"}
               {currentStep < 3 && <ChevronRight className="ml-2 h-4 w-4" />}

@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap');
 
 @tailwind base;
@@ -15,19 +16,19 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 10% 15%;
 
-    /* Updated primary color to Warm Ochre */
-    --primary: 35 34% 59%;
+    /* Updated primary color to Forest Green */
+    --primary: 80 89% 18%;
     --primary-foreground: 0 0% 100%;
 
-    /* Updated secondary color to Vibrant Blue */
-    --secondary: 216 100% 50%;
+    /* Updated secondary color to Goldenrod */
+    --secondary: 40 89% 50%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 10% 96%;
     --muted-foreground: 220 10% 45%;
 
-    /* Updated accent color to Vibrant Red */
-    --accent: 0 100% 60%;
+    /* Updated accent color to Maroon */
+    --accent: 0 96% 27%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -35,7 +36,7 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 35 34% 59%;
+    --ring: 80 89% 18%;
 
     --radius: 0.5rem;
 
@@ -59,19 +60,19 @@
     --popover: 220 10% 12%;
     --popover-foreground: 0 0% 100%;
 
-    /* Updated primary color to Warm Ochre for dark mode */
-    --primary: 35 34% 59%;
+    /* Updated primary color to Forest Green for dark mode */
+    --primary: 80 89% 18%;
     --primary-foreground: 0 0% 100%;
 
-    /* Updated secondary color to Vibrant Blue for dark mode */
-    --secondary: 216 100% 50%;
+    /* Updated secondary color to Goldenrod for dark mode */
+    --secondary: 40 89% 50%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 10% 15%;
     --muted-foreground: 220 10% 70%;
 
-    /* Updated accent color to Vibrant Green for dark mode */
-    --accent: 144 100% 40%;
+    /* Updated accent color to Maroon for dark mode */
+    --accent: 0 96% 27%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
@@ -79,7 +80,7 @@
 
     --border: 220 10% 20%;
     --input: 220 10% 20%;
-    --ring: 35 34% 59%;
+    --ring: 80 89% 18%;
   }
 }
 
@@ -101,12 +102,12 @@
 
 @layer components {
   .filipino-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C19A6B' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233E5902' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     background-color: white;
   }
   
   .hidden-gems-bg {
-    background-image: linear-gradient(to right, rgba(193, 154, 107, 0.1), rgba(0, 128, 128, 0.1));
+    background-image: linear-gradient(to right, rgba(62, 89, 2, 0.1), rgba(4, 173, 191, 0.1));
     background-color: white;
   }
   

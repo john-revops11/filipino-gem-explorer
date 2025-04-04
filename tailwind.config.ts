@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -64,26 +63,38 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				filipino: {
-					warmOchre: '#C19A6B', // New color - Warm Ochre
-					deepTeal: '#008080',  // New color - Deep Teal
-					lightBeige: '#F5F5DC', // New color - Light Beige
-					darkGray: '#333333',  // New color - Dark Gray
-					sunnyYellow: '#FFD700', // New color - Sunny Yellow
-					vibrantGreen: '#00CC66', // New vibrant green
-					vibrantRed: '#FF3333', // New vibrant red
-					vibrantBlue: '#0066FF', // New vibrant blue
-					terracotta: '#FF5722', // Keep existing vibrant color
-					ochre: '#F44336',     // Keep existing vibrant color
-					teal: '#00BCD4',      // Keep existing vibrant color
-					yellow: '#FFC400',    // Keep existing vibrant color
-					sand: '#FFFFFF',      // Keep white
-					forest: '#76FF03',    // Keep existing vibrant color
-					coral: '#FF3D00',     // Keep existing vibrant color
-					navy: '#3D5AFE',      // Keep existing vibrant color
-					red: '#D50000',       // Keep existing vibrant color
-					purple: '#7C4DFF',    // Keep existing vibrant color
-					pink: '#FF00FF',      // Keep existing vibrant color
-					orange: '#FF6D00',    // Keep existing vibrant color
+					forest: '#3E5902',
+					goldenrod: '#F2A20C',
+					beige: '#D9B5A0',
+					brown: '#592519',
+					maroon: '#8C0303',
+					blue: '#308AD9',
+					teal: '#3299D9',
+					lightBlue: '#3BACD9',
+					mint: '#04ADBF',
+					turquoise: '#04BFBF',
+					darkTeal: '#027373',
+					lime: '#7EA629',
+					cream: '#F2E0D0',
+					warmOchre: '#C19A6B',
+					deepTeal: '#008080',
+					lightBeige: '#F5F5DC',
+					darkGray: '#333333',
+					sunnyYellow: '#FFD700',
+					vibrantGreen: '#00CC66',
+					vibrantRed: '#FF3333',
+					vibrantBlue: '#0066FF',
+					terracotta: '#FF5722',
+					ochre: '#F44336',
+					teal: '#00BCD4',
+					yellow: '#FFC400',
+					sand: '#FFFFFF',
+					coral: '#FF3D00',
+					navy: '#3D5AFE',
+					red: '#D50000',
+					purple: '#7C4DFF',
+					pink: '#FF00FF',
+					orange: '#FF6D00',
 				}
 			},
 			borderRadius: {

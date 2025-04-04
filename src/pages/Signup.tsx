@@ -49,7 +49,7 @@ export default function Signup() {
   };
   
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-filipino-sand to-filipino-terracotta/50 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-filipino-cream to-filipino-beige p-4">
       <div className="w-full max-w-md">
         <Card className="border-none shadow-lg">
           <CardHeader className="space-y-1 text-center">
@@ -132,7 +132,7 @@ export default function Signup() {
             <CardFooter className="flex flex-col">
               <Button 
                 type="submit" 
-                className="w-full bg-filipino-terracotta hover:bg-filipino-terracotta/90"
+                className="w-full bg-filipino-forest hover:bg-filipino-forest/90"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating account..." : "Sign up"}
@@ -141,7 +141,7 @@ export default function Signup() {
                 Already have an account?{" "}
                 <Button 
                   variant="link" 
-                  className="px-0"
+                  className="px-0 text-filipino-goldenrod"
                   onClick={() => navigate("/login")}
                   type="button"
                 >
