@@ -5,6 +5,7 @@ import { AdminDestinations } from "@/components/admin/AdminDestinations";
 import { AdminTours } from "@/components/admin/AdminTours";
 import { AdminFoods } from "@/components/admin/AdminFoods";
 import { AdminItineraries } from "@/components/admin/AdminItineraries";
+import { AdminPlaces } from "@/components/admin/AdminPlaces";
 import { ContentGeneratorDialog } from "@/components/admin/ContentGeneratorDialog";
 import { AdminAccessRestricted } from "@/components/admin/AdminAccessRestricted";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -45,8 +46,9 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="destinations" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-8">
+          <TabsList className="grid grid-cols-5 mb-8">
             <TabsTrigger value="destinations">Destinations</TabsTrigger>
+            <TabsTrigger value="places">Places</TabsTrigger>
             <TabsTrigger value="tours">Tours</TabsTrigger>
             <TabsTrigger value="foods">Food</TabsTrigger>
             <TabsTrigger value="itineraries">Itineraries</TabsTrigger>
@@ -54,6 +56,10 @@ export default function AdminDashboard() {
           
           <TabsContent value="destinations">
             <AdminDestinations />
+          </TabsContent>
+          
+          <TabsContent value="places">
+            <AdminPlaces />
           </TabsContent>
           
           <TabsContent value="tours">

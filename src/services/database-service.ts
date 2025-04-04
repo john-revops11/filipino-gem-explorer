@@ -50,6 +50,21 @@ export interface Tour {
   highlights?: string[];
 }
 
+export interface Place {
+  id?: string;
+  name: string;
+  type: "hotel" | "resort" | "tourist_spot" | "restaurant" | "other";
+  description: string;
+  location_id: string;
+  image?: string;
+  address?: string;
+  price_range?: string;
+  contact?: string;
+  website?: string;
+  amenities?: string[];
+  tags?: string[];
+}
+
 export interface ItineraryDay {
   day: string;
   activities: Array<{
@@ -235,6 +250,100 @@ const databaseService = {
       console.error("Error getting tours:", error);
       toast.error("Failed to load tours", {
         description: "There was an error retrieving tours. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  savePlace: async (placeData: Place) => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'places'), {
+        ...placeData,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+      
+      return docRef.id;
+    } catch (error) {
+      console.error("Error saving place:", error);
+      toast.error("Failed to save place", {
+        description: "There was an error saving the place. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  getPlaces: async () => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'places'));
+      const places: Place[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        places.push({
+          id: doc.id,
+          ...doc.data() as Place
+        });
+      });
+      
+      return places;
+    } catch (error) {
+      console.error("Error getting places:", error);
+      toast.error("Failed to load places", {
+        description: "There was an error retrieving places. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  getPlacesByLocation: async (locationId: string) => {
+    try {
+      const placesQuery = firestoreQuery(
+        collection(firestore, 'places'),
+        where('location_id', '==', locationId)
+      );
+      
+      const querySnapshot = await getDocs(placesQuery);
+      const places: Place[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        places.push({
+          id: doc.id,
+          ...doc.data() as Place
+        });
+      });
+      
+      return places;
+    } catch (error) {
+      console.error("Error getting places by location:", error);
+      toast.error("Failed to load places", {
+        description: "There was an error retrieving places. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  getPlacesByType: async (type: string) => {
+    try {
+      const placesQuery = firestoreQuery(
+        collection(firestore, 'places'),
+        where('type', '==', type)
+      );
+      
+      const querySnapshot = await getDocs(placesQuery);
+      const places: Place[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        places.push({
+          id: doc.id,
+          ...doc.data() as Place
+        });
+      });
+      
+      return places;
+    } catch (error) {
+      console.error(`Error getting places by type (${type}):`, error);
+      toast.error("Failed to load places", {
+        description: "There was an error retrieving places. Please try again."
       });
       throw error;
     }
