@@ -1,7 +1,7 @@
 
 import { ReactNode } from "react";
-import Header from "@/components/Header";
-import BottomNav from "@/components/BottomNav";
+import { Header } from "@/components/Header";
+import { BottomNav } from "@/components/BottomNav";
 
 interface LayoutProps {
   children: ReactNode;
