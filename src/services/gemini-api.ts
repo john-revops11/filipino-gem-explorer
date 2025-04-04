@@ -1,4 +1,3 @@
-
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 // Note: In a production app, you would store this in environment variables
@@ -184,7 +183,7 @@ export function formatItineraryContent(content: string): string {
             <div class="bg-filipino-warmOchre/10 p-3 rounded-md mt-2">
               <div class="flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-filipino-warmOchre mr-2 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                 </svg>
                 <div>
                   <p class="font-medium text-sm">Travel Tip</p>
@@ -352,6 +351,177 @@ export async function answerTravelQuestion(question: string): Promise<any> {
     return response.text();
   } catch (error) {
     console.error("Error answering travel question:", error);
+    throw error;
+  }
+}
+
+// Generate destination profiles for the Philippines
+export async function generatePhilippinesDestinationProfile(input: {
+  location: string;
+  region?: string;
+  description?: string;
+}): Promise<string> {
+  try {
+    const prompt = `You are an AI that creates or enriches destination profiles specifically for Philippine locations. 
+    
+    For the provided location "${input.location}" ${input.description ? `(${input.description})` : ""} in ${input.region || "the Philippines"}, generate a structured profile including:
+    
+    1. Overview: Geography (island or highland), climate (wet/dry season), local language(s).
+    2. History & Culture: Brief highlights of the region's heritage, key festivals, cultural traditions.
+    3. Top Attractions: Must-see spots (landmarks, beaches, natural wonders), plus a lesser-known hidden gem.
+    4. Local Cuisine: Signature dishes or delicacies specific to this region.
+    5. Travel Tips: Best months to visit, typical transport options, safety or logistical notes.
+    
+    Keep your response factual and informative, focusing specifically on Philippine travel information.`;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      safetySettings,
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 800,
+      },
+    });
+
+    const response = result.response;
+    return response.text();
+  } catch (error) {
+    console.error("Error generating destination profile:", error);
+    throw error;
+  }
+}
+
+// Generate place details and hidden gems
+export async function generatePlaceDetails(input: {
+  location: string;
+  placeType: string;
+  description?: string;
+}): Promise<string> {
+  try {
+    const prompt = `You are an AI for curating detailed info on notable places and hidden gems in the Philippines.
+    
+    Provide detailed information on ${input.placeType === "Hidden Gem" ? "hidden gems" : "places of interest"} in ${input.location}${input.description ? ` (${input.description})` : ""}.
+    
+    For each place, include:
+    - Full Description: Historical background or unique features.
+    - Distinct Highlights: e.g., panoramic views, cultural significance, local flora/fauna.
+    - Location & Directions: If known, how to get there (jeepney routes, ferry schedules, typical travel times).
+    - Hours & Fees: Entrance fees in PHP, open/close times.
+    - Insider Tip: A trick for skipping lines, best time to visit, local guide recommendation.
+    
+    Format your response as a JSON array of place objects with the following fields:
+    name, type, description, highlights, location, directions, hours, fees, insider_tip, images (can be an empty array).
+    
+    Generate ${input.placeType === "Hidden Gem" ? "lesser-known attractions" : "popular attractions"} that travelers should visit.`;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      safetySettings,
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 1000,
+      },
+    });
+
+    const response = result.response;
+    return response.text();
+  } catch (error) {
+    console.error("Error generating place details:", error);
+    throw error;
+  }
+}
+
+// Generate food and cuisine information
+export async function generateFoodCuisineInfo(input: {
+  location: string;
+  cuisine?: string;
+}): Promise<string> {
+  try {
+    const prompt = `You are an AI that generates or enriches culinary data for Philippine local dishes, regional specialties, or entire city cuisines.
+    
+    For ${input.location}${input.cuisine ? ` and its dish "${input.cuisine}"` : ""}, produce:
+    
+    1. Signature Dishes: Name, main ingredients, typical flavor, how it's traditionally served.
+    2. Local Eateries: 2–3 recommended places (approx. price ranges in PHP).
+    3. Dietary Variations: If any (e.g., vegetarian/vegan versions, allergen info).
+    4. Dining Customs: e.g., kamayan style, local beliefs about certain foods, mealtime norms.
+    5. Fun Fact: A piece of trivia or historical note about the dish or region's food culture.
+    
+    Format your response as a JSON array of food objects with the following fields:
+    name, type, description, ingredients, flavor_profile, traditional_serving, local_eateries (array of objects with name and price_range), dietary_variations, dining_customs, fun_fact, image (can be an empty string).
+    `;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      safetySettings,
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 1000,
+      },
+    });
+
+    const response = result.response;
+    return response.text();
+  } catch (error) {
+    console.error("Error generating food information:", error);
+    throw error;
+  }
+}
+
+// Generate tours and events information
+export async function generateToursAndEvents(input: {
+  location: string;
+  eventType: string;
+  date?: string;
+  description?: string;
+}): Promise<string> {
+  try {
+    const prompt = `You are an AI for generating listings on tours and events across the Philippines.
+    
+    Create structured data for ${input.eventType} in ${input.location}${input.date ? ` around ${input.date}` : ""}${input.description ? ` with highlights: ${input.description}` : ""}.
+    
+    For each event/tour, include:
+    - Name: A descriptive name for the event or tour
+    - Date/Season: When it occurs or is available
+    - Description: 100–200 words about what's offered, significance, main activities
+    - Target Audience: Who would enjoy this most (families, solo travelers, etc.)
+    - Booking Info: If known (ticket links, registration, typical cost in PHP)
+    - Relevance to Local Culture: Why it's important to that town or city
+    
+    Format your response as a JSON array of event objects with these fields:
+    name, type, date_or_season, description, target_audience, booking_info, cost_range, local_relevance, image (can be an empty string).
+    
+    Generate information that would be useful for travelers planning their trip.`;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      safetySettings,
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 1000,
+      },
+    });
+
+    const response = result.response;
+    return response.text();
+  } catch (error) {
+    console.error("Error generating events information:", error);
     throw error;
   }
 }
