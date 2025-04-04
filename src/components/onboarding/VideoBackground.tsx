@@ -5,7 +5,7 @@ type VideoBackgroundProps = {
   children: React.ReactNode;
 };
 
-export default function VideoBackground({ children }: VideoBackgroundProps) {
+const VideoBackground = ({ children }: VideoBackgroundProps) => {
   return (
     <div className="relative h-full w-full overflow-hidden">
       {/* Video background */}
@@ -33,4 +33,6 @@ export default function VideoBackground({ children }: VideoBackgroundProps) {
       <div className="relative z-20 h-full">{children}</div>
     </div>
   );
-}
+};
+
+export default VideoBackground;
