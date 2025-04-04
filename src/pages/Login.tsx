@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/services/firebase";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, AlertTriangle } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Login() {
@@ -17,11 +17,13 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const isMobile = useIsMobile();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginError("");
 
     try {
       // Regular user login
@@ -30,7 +32,24 @@ export default function Login() {
       navigate("/");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "Failed to log in");
+      
+      // Handle specific Firebase error codes
+      let errorMessage = "Failed to log in";
+      
+      if (error.code === 'auth/invalid-credential' || 
+          error.code === 'auth/user-not-found' || 
+          error.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed login attempts. Please try again later";
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection";
+      } else if (error.code === 'auth/configuration-not-found') {
+        errorMessage = "Authentication service unavailable. Please try again later";
+      }
+      
+      setLoginError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +87,20 @@ export default function Login() {
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
+              {loginError && (
+                <div className="bg-red-50 p-3 rounded-md flex items-start gap-2 text-red-700 text-sm">
+                  <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <p>{loginError}</p>
+                </div>
+              )}
+              
+              {process.env.NODE_ENV === 'development' && (
+                <div className="bg-blue-50 p-3 rounded-md text-blue-700 text-sm">
+                  <p className="font-semibold">Development Mode</p>
+                  <p>Regular user: user@example.com / password123</p>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

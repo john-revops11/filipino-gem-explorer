@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, AlertTriangle } from "lucide-react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/services/firebase";
+import { auth, firestore } from "@/services/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -18,12 +19,14 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [signupError, setSignupError] = useState("");
   
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSignupError("");
     
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      setSignupError("Passwords do not match");
       return;
     }
     
@@ -38,11 +41,34 @@ export default function Signup() {
         displayName: name
       });
       
+      // Store additional user information in Firestore
+      await setDoc(doc(firestore, "users", userCredential.user.uid), {
+        displayName: name,
+        email: email,
+        createdAt: serverTimestamp(),
+        isAdmin: false,
+        photoURL: null
+      });
+      
       toast.success("Account created successfully");
       navigate("/");
     } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account");
+      
+      let errorMessage = "Failed to create account";
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "Email is already in use";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak";
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection";
+      }
+      
+      setSignupError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -67,6 +93,13 @@ export default function Signup() {
           </CardHeader>
           <form onSubmit={handleSignup}>
             <CardContent className="space-y-4">
+              {signupError && (
+                <div className="bg-red-50 p-3 rounded-md flex items-start gap-2 text-red-700 text-sm">
+                  <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <p>{signupError}</p>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input
