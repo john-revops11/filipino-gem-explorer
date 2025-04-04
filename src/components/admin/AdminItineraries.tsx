@@ -27,7 +27,7 @@ import { addDays, isBefore } from 'date-fns';
 import { auth } from "@/services/firebase";
 import databaseService, { Itinerary } from "@/services/database-service";
 
-const AdminItineraries = () => {
+export const AdminItineraries = () => {
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -71,7 +71,6 @@ const AdminItineraries = () => {
     setIsDialogOpen(true);
     setIsEditing(false);
 
-    // Populate the form fields with the selected itinerary data
     setName(itinerary.name);
     setDescription(itinerary.description);
     setDays(itinerary.days);
@@ -81,7 +80,7 @@ const AdminItineraries = () => {
     setTags(itinerary.tags);
     setIsPublic(itinerary.is_public);
     setCreatedAt(itinerary.createdAt ? new Date(itinerary.createdAt) : undefined);
-    setUpdatedAt(itinerary.updatedAt ? new Date(itinerary.updatedAt) : undefined);
+    setUpdatedAt(itinerary.updated_at ? new Date(itinerary.updated_at) : undefined);
   };
 
   const handleCloseDialog = () => {
@@ -115,15 +114,15 @@ const AdminItineraries = () => {
         is_public: isPublic,
         updated_at: currentTime,
         createdAt: createdAt ? createdAt.toISOString() : currentTime,
-        updatedAt: currentTime
+        updated_at: currentTime
       };
 
-      await databaseService.updateItinerary(selectedItinerary.id, updatedItineraryData);
+      await databaseService.updateItinerary(selectedItinerary.id!, updatedItineraryData);
       toast({
         title: "Success",
         description: "Itinerary updated successfully"
       });
-      fetchItineraries(); // Refresh the itineraries list
+      fetchItineraries();
     } catch (error) {
       console.error("Error updating itinerary:", error);
       toast({
@@ -142,12 +141,12 @@ const AdminItineraries = () => {
 
     try {
       setIsDeleting(true);
-      await databaseService.deleteItinerary(selectedItinerary.id);
+      await databaseService.deleteItinerary(selectedItinerary.id!);
       toast({
         title: "Success",
         description: "Itinerary deleted successfully"
       });
-      fetchItineraries(); // Refresh the itineraries list
+      fetchItineraries();
     } catch (error) {
       console.error("Error deleting itinerary:", error);
       toast({
@@ -188,7 +187,7 @@ const AdminItineraries = () => {
         title: "Success",
         description: "Itinerary created successfully"
       });
-      fetchItineraries(); // Refresh the itineraries list
+      fetchItineraries();
     } catch (error) {
       console.error("Error creating itinerary:", error);
       toast({

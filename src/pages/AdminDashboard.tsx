@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Layout } from "@/components/shared/Layout";
 import { AdminAccessRestricted } from "@/components/admin/AdminAccessRestricted";
@@ -8,7 +7,7 @@ import { AdminDestinations } from "@/components/admin/AdminDestinations";
 import { AdminPlaces } from "@/components/admin/AdminPlaces";
 import { AdminTours } from "@/components/admin/AdminTours";
 import { AdminFoods } from "@/components/admin/AdminFoods";
-import { AdminItineraries } from "@/components/admin/AdminItineraries";
+import { AdminItineraries } from "@/components/admin/AdminItineraries"; // Changed to named import
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminBookings } from "@/components/admin/AdminBookings";
 import { AdminSettings } from "@/components/admin/AdminSettings";
