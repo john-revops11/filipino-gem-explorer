@@ -20,7 +20,7 @@ import { Menu, Search, User, LogOut, Settings, Shield } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { auth } from "@/services/firebase";
 
-const Header = () => {
+export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -179,5 +179,3 @@ const Header = () => {
     </header>
   );
 };
-
-export default Header;
