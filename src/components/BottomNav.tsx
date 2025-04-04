@@ -1,8 +1,27 @@
 
-import { Home, Map, Calendar, Bookmark, User } from "lucide-react";
+import { Home, Map, Calendar, Bookmark, User, Shield } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { auth } from "@/services/firebase";
+import { useState, useEffect } from "react";
 
 export function BottomNav() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdmin = () => {
+      const user = auth.currentUser;
+      if (user && (user.email === "admin@example.com" || user.uid === "system")) {
+        setIsAdmin(true);
+      }
+    };
+    
+    checkAdmin();
+    // Listen for auth state changes
+    const unsubscribe = auth.onAuthStateChanged(checkAdmin);
+    return () => unsubscribe();
+  }, []);
+
   // Safely use router hooks
   let location;
   try {
@@ -20,6 +39,11 @@ export function BottomNav() {
     { icon: Bookmark, label: "Bookings", path: "/bookings" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
+
+  // Add admin link if user is admin
+  if (isAdmin) {
+    navItems.push({ icon: Shield, label: "Admin", path: "/admin" });
+  }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t bg-card z-10 pb-safe">

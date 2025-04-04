@@ -9,6 +9,8 @@ import { AdminItineraries } from "@/components/admin/AdminItineraries";
 import { auth } from "@/services/firebase";
 import { useNavigate } from "react-router-dom";
 import { Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -21,12 +23,21 @@ export default function AdminDashboard() {
       setIsLoading(true);
       const user = auth.currentUser;
       
+      // For development purposes, allow easy access - remove in production
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: Bypassing admin check');
+        setIsAdmin(true);
+        setIsLoading(false);
+        return;
+      }
+      
       // Simple admin check based on email - replace with proper role check
       // In production, this should be done with custom claims or a roles table
       if (user && (user.email === "admin@example.com" || user.uid === "system")) {
         setIsAdmin(true);
       } else {
         // Redirect non-admins to home
+        toast.error("Admin access required");
         navigate("/");
       }
       setIsLoading(false);
@@ -51,9 +62,12 @@ export default function AdminDashboard() {
         <div className="flex flex-col items-center justify-center h-[70vh] text-center p-4">
           <Shield className="h-16 w-16 text-filipino-terracotta mb-4" />
           <h1 className="text-2xl font-bold mb-2">Admin Access Required</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             You don't have permission to access this area.
           </p>
+          <Button onClick={() => navigate("/")} variant="default">
+            Return to Home
+          </Button>
         </div>
       </Layout>
     );
