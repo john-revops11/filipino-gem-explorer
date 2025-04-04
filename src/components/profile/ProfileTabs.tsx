@@ -27,9 +27,10 @@ type ActivityItem = {
 type ProfileTabsProps = {
   savedItems: SavedItem[];
   userActivity: ActivityItem[];
+  userId?: string; // Make userId an optional prop
 };
 
-export const ProfileTabs = ({ savedItems, userActivity }: ProfileTabsProps) => {
+export const ProfileTabs = ({ savedItems, userActivity, userId }: ProfileTabsProps) => {
   return (
     <Tabs defaultValue="saved" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
@@ -39,7 +40,7 @@ export const ProfileTabs = ({ savedItems, userActivity }: ProfileTabsProps) => {
       </TabsList>
       
       <TabsContent value="saved">
-        <SavedItems items={savedItems} />
+        <SavedItems userId={userId} />
       </TabsContent>
       
       <TabsContent value="activity">

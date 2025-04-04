@@ -76,9 +76,8 @@ export const SavedItems = ({ userId }: SavedItemsProps) => {
 
   const removeItem = (id: string) => {
     setSavedItems(items => items.filter(item => item.id !== id));
-    toast({
-      title: "Item removed",
-      description: "The item has been removed from your saved list.",
+    toast.error("Item removed", {
+      description: "The item has been removed from your saved list."
     });
   };
 

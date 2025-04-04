@@ -1,4 +1,3 @@
-
 import { auth, database, firestore } from "./firebase";
 import { ref, set, get, push, remove, query, orderByChild, equalTo } from "firebase/database";
 import { 
@@ -12,9 +11,8 @@ import {
   getDoc
 } from "firebase/firestore";
 import { toast } from "sonner";
-import { generateItinerary } from "./gemini-api";
+import { generateItinerary as generateAIItinerary } from "./gemini-api";
 
-// Define types based on the database structure
 export interface Location {
   id?: string;
   name: string;
@@ -89,7 +87,6 @@ export interface Itinerary {
 }
 
 const databaseService = {
-  // LOCATIONS
   saveLocation: async (locationData: Location) => {
     try {
       const docRef = await addDoc(collection(firestore, 'locations'), {
@@ -153,7 +150,6 @@ const databaseService = {
     }
   },
   
-  // FOOD
   saveFoodItem: async (foodData: Food) => {
     try {
       const docRef = await addDoc(collection(firestore, 'food'), {
@@ -199,7 +195,6 @@ const databaseService = {
     }
   },
   
-  // TOURS
   saveTour: async (tourData: Tour) => {
     try {
       const docRef = await addDoc(collection(firestore, 'tours'), {
@@ -245,7 +240,6 @@ const databaseService = {
     }
   },
   
-  // ITINERARIES
   saveItinerary: async (itineraryData: Itinerary) => {
     console.log("Saving itinerary:", itineraryData);
     
@@ -277,7 +271,6 @@ const databaseService = {
     }
   },
 
-  // Get an itinerary by ID
   getItinerary: async (itineraryId: string) => {
     try {
       const docRef = doc(firestore, 'itineraries', itineraryId);
@@ -301,7 +294,6 @@ const databaseService = {
     }
   },
 
-  // Get user itineraries
   getUserItineraries: async (userId: string) => {
     try {
       if (!userId) {
@@ -335,7 +327,6 @@ const databaseService = {
     }
   },
 
-  // Get public itineraries
   getPublicItineraries: async () => {
     try {
       const itinerariesQuery = firestoreQuery(
@@ -363,7 +354,6 @@ const databaseService = {
     }
   },
 
-  // Save itinerary from AI generation
   saveGeneratedItinerary: async (destination: string, days: string, content: string, userId: string) => {
     try {
       if (!userId) {
@@ -402,7 +392,17 @@ const databaseService = {
     }
   },
 
-  // Generate initial data for the database
+  generateItinerary: async (destination: string, days: number, preferences: string) => {
+    try {
+      // Call the AI service to generate the content
+      const itineraryContent = await generateAIItinerary(destination, days, preferences);
+      return itineraryContent;
+    } catch (error) {
+      console.error(`Error generating AI itinerary for ${destination}:`, error);
+      throw new Error(`Failed to generate AI itinerary: ${error}`);
+    }
+  },
+
   generateInitialData: async () => {
     try {
       // Check if data already exists
@@ -487,7 +487,7 @@ const databaseService = {
             const days = daysOptions[randomDaysIndex];
             
             // Call the AI service to generate the content
-            const itineraryContent = await generateItinerary(locationName, parseInt(days), "balanced, cultural experiences");
+            const itineraryContent = await generateAIItinerary(locationName, parseInt(days), "balanced, cultural experiences");
             
             // Create the itinerary object
             const itineraryData: Itinerary = {

@@ -122,7 +122,7 @@ export default function Profile() {
         <ProfileTabs 
           savedItems={savedItems} 
           userActivity={userActivity}
-          userId={userId || undefined}
+          userId={userId} // Pass userId as a prop to ProfileTabs
         />
       </div>
       

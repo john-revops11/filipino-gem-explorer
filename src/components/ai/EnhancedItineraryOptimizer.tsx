@@ -61,10 +61,10 @@ export default function EnhancedItineraryOptimizer() {
       const itineraryData: Itinerary = {
         name: `${days}-Day Trip to ${destination}`,
         description: `Personalized ${days}-day itinerary for ${destination} with preferences: ${preferences}`,
-        days: [], // This would be populated with actual day references in a real implementation
-        total_price: "Estimate unavailable", // This would be calculated in a real implementation
+        days: parseInt(days), // Converting days string to number
         location: {
-          region_id: "placeholder-region", // These would be actual IDs in a real implementation
+          name: destination, // Adding name property
+          region_id: "placeholder-region", 
           province_id: "placeholder-province",
           city_id: "placeholder-city"
         },

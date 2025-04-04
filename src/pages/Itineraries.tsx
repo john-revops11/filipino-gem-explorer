@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -40,10 +39,7 @@ export default function Itineraries() {
       try {
         setIsLoading(true);
         
-        // Fetch itineraries
         const publicItineraries = await databaseService.getPublicItineraries();
-        
-        // Fetch locations for the destinations dropdown
         const availableLocations = await databaseService.getLocations();
         
         setItineraries(publicItineraries);
@@ -62,50 +58,40 @@ export default function Itineraries() {
   }, []);
   
   const handleCreateItinerary = async () => {
-    // Validate form
     if (!newItinerary.title || !newItinerary.startDate || !newItinerary.endDate) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
+      toast.error("Missing information", {
+        description: "Please fill in all required fields."
       });
       return;
     }
     
     try {
-      // Calculate number of days
       const startDate = new Date(newItinerary.startDate);
       const endDate = new Date(newItinerary.endDate);
       
       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
       
-      // Format date range
       const formatDate = (date: Date) => {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       };
       
       const dateRange = `${formatDate(startDate)}-${formatDate(endDate)}, ${endDate.getFullYear()}`;
       
-      // Get selected destination names
       const selectedDestinations = newItinerary.destinations.map(destId => {
         const dest = locations.find(d => d.id === destId);
         return dest ? dest.name : '';
       }).filter(Boolean);
       
       if (selectedDestinations.length === 0) {
-        toast({
-          title: "Missing destination",
-          description: "Please select at least one destination.",
-          variant: "destructive"
+        toast.error("Missing destination", {
+          description: "Please select at least one destination."
         });
         return;
       }
       
-      // Create new itinerary object
       const mainDestination = selectedDestinations[0];
       
-      // Generate AI content based on the first selected destination
       const content = await databaseService.generateItinerary(mainDestination, diffDays, newItinerary.notes || "balanced itinerary");
       
       const newItineraryObj: Itinerary = {
@@ -117,7 +103,7 @@ export default function Itineraries() {
         },
         tags: ["Custom", ...selectedDestinations],
         content: content,
-        created_by: "current-user", // Should be replaced with the actual user ID
+        created_by: "current-user",
         is_public: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -128,13 +114,10 @@ export default function Itineraries() {
         dateRange
       };
       
-      // Save to database
       const itineraryId = await databaseService.saveItinerary(newItineraryObj);
       
-      // Add to itineraries list
       setItineraries([{...newItineraryObj, id: itineraryId}, ...itineraries]);
       
-      // Reset form
       setNewItinerary({
         title: "",
         startDate: "",
@@ -143,8 +126,7 @@ export default function Itineraries() {
         destinations: []
       });
       
-      toast({
-        title: "Itinerary created",
+      toast.success("Itinerary created", {
         description: "Your new itinerary has been created successfully."
       });
     } catch (error) {
@@ -169,7 +151,6 @@ export default function Itineraries() {
     }
   };
 
-  // Return a loading state while data is being fetched
   if (isLoading) {
     return (
       <div className="min-h-screen pb-16 bg-gradient-to-b from-white to-filipino-sand/10">
