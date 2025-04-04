@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    --background: 38 33% 97%;
+    --background: 50 100% 97%;
     --foreground: 220 10% 15%;
 
     --card: 0 0% 100%;
@@ -16,27 +16,27 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 10% 15%;
 
-    /* Updated primary color to match logo */
-    --primary: 200 75% 40%;
+    /* Updated primary color to vibrant orange-red */
+    --primary: 14 82% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Adjusted secondary color to complement primary */
-    --secondary: 176 65% 40%;
+    /* Adjusted secondary color to bright green */
+    --secondary: 88 65% 53%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 38 33% 94%;
+    --muted: 45 100% 90%;
     --muted-foreground: 220 10% 45%;
 
-    /* Updated accent color to match logo and add teal */
-    --accent: 176 65% 45%;
-    --accent-foreground: 220 10% 15%;
+    /* Updated accent color to vibrant purple */
+    --accent: 265 83% 63%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 38 20% 90%;
-    --input: 38 20% 90%;
-    --ring: 200 75% 40%;
+    --border: 30 100% 85%;
+    --input: 30 100% 85%;
+    --ring: 14 82% 53%;
 
     --radius: 0.5rem;
 
@@ -52,35 +52,35 @@
 
   .dark {
     --background: 220 10% 10%;
-    --foreground: 38 33% 97%;
+    --foreground: 45 100% 90%;
 
     --card: 220 10% 12%;
-    --card-foreground: 38 33% 97%;
+    --card-foreground: 45 100% 90%;
 
     --popover: 220 10% 12%;
-    --popover-foreground: 38 33% 97%;
+    --popover-foreground: 45 100% 90%;
 
-    /* Updated primary color to match logo for dark mode */
-    --primary: 200 75% 50%;
+    /* Updated primary color to vibrant orange-red for dark mode */
+    --primary: 14 82% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Adjusted secondary color to complement primary for dark mode */
-    --secondary: 176 64% 50%;
+    /* Adjusted secondary color to bright green for dark mode */
+    --secondary: 88 65% 53%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 10% 15%;
-    --muted-foreground: 38 33% 80%;
+    --muted-foreground: 45 100% 80%;
 
-    /* Updated accent color to match logo for dark mode */
-    --accent: 176 82% 55%;
-    --accent-foreground: 220 10% 15%;
+    /* Updated accent color to vibrant purple for dark mode */
+    --accent: 265 83% 63%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 220 10% 20%;
     --input: 220 10% 20%;
-    --ring: 200 75% 50%;
+    --ring: 14 82% 53%;
   }
 }
 
@@ -102,11 +102,11 @@
 
 @layer components {
   .filipino-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231E88C3' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23E94822' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
   
   .hidden-gems-bg {
-    background-image: linear-gradient(to right, rgba(30, 136, 195, 0.1), rgba(0, 87, 145, 0.1));
+    background-image: linear-gradient(to right, rgba(233, 72, 34, 0.1), rgba(241, 48, 48, 0.1));
   }
   
   /* ... keep existing code (destination card styles, gradient overlay, section title etc.) */

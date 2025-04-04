@@ -24,7 +24,7 @@ export function LocalBusinessHighlight() {
             Experience authentic Ivatan hospitality and culture in this family-owned homestay with traditional stone house architecture.
           </p>
           
-          <Button className="w-full bg-filipino-terracotta hover:bg-filipino-terracotta/90">
+          <Button className="w-full bg-filipino-terracotta hover:bg-filipino-terracotta/90 text-white">
             Learn More
           </Button>
         </div>
