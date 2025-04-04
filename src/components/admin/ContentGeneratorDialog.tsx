@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Sparkles, Globe, Utensils, MapPin, Calendar } from "lucide-react";
 import { toast } from "sonner";
@@ -43,26 +42,20 @@ export function ContentGeneratorDialog() {
   const [openDialog, setOpenDialog] = useState(false);
   const queryClient = useQueryClient();
   
-  // Common fields
   const [location, setLocation] = useState("Cebu");
   const [numItems, setNumItems] = useState("3");
   
-  // Destination specific fields
   const [region, setRegion] = useState("Visayas");
   const [description, setDescription] = useState("");
   
-  // Itinerary specific fields
   const [days, setDays] = useState("3");
   const [travelStyle, setTravelStyle] = useState("Budget");
   const [preferences, setPreferences] = useState("");
   
-  // Place specific fields
   const [placeType, setPlaceType] = useState("Attraction");
   
-  // Food specific fields
   const [cuisine, setCuisine] = useState("");
   
-  // Event specific fields
   const [eventType, setEventType] = useState("Festival");
   const [eventDate, setEventDate] = useState("");
 
@@ -103,25 +96,20 @@ export function ContentGeneratorDialog() {
   };
   
   const generateDestinations = async () => {
-    // Generate data about the location
     const locationData = await generatePhilippinesDestinationProfile({
       location: location,
       region: region,
       description: description
     });
     
-    // Parse the generated content
     const destinations = parseDestinations(locationData, parseInt(numItems, 10));
     
-    // Save destinations to database
     for (const destination of destinations) {
       await databaseService.saveLocation(destination);
       
-      // For each destination, generate 1-2 food items
       await generateFoodsForDestination(destination);
     }
     
-    // Invalidate queries to refresh data
     queryClient.invalidateQueries({ queryKey: ["locations"] });
   };
   
@@ -132,8 +120,6 @@ export function ContentGeneratorDialog() {
       description: description
     });
     
-    // Parse and save the place data
-    // This would need to be implemented in a content parser
     const places = JSON.parse(placeData);
     
     if (Array.isArray(places)) {
@@ -153,7 +139,6 @@ export function ContentGeneratorDialog() {
       cuisine: cuisine
     });
     
-    // Parse and save the food data
     const foods = JSON.parse(foodData);
     
     if (Array.isArray(foods)) {
@@ -174,8 +159,7 @@ export function ContentGeneratorDialog() {
       `Travel style: ${travelStyle}. ${preferences}`
     );
     
-    // Save the itinerary
-    await databaseService.saveItinerary({
+    await databaseService.addItinerary({
       title: `${days}-Day ${location} Itinerary`,
       days: parseInt(days),
       location: location,
@@ -195,15 +179,14 @@ export function ContentGeneratorDialog() {
       description: description
     });
     
-    // Parse and save the event data
     const events = JSON.parse(eventData);
     
     if (Array.isArray(events)) {
       for (const event of events) {
-        await databaseService.saveEvent(event);
+        await databaseService.addEvent(event);
       }
     } else {
-      await databaseService.saveEvent(events);
+      await databaseService.addEvent(events);
     }
     
     queryClient.invalidateQueries({ queryKey: ["events"] });
@@ -234,7 +217,6 @@ export function ContentGeneratorDialog() {
             <TabsTrigger value="event">Events</TabsTrigger>
           </TabsList>
           
-          {/* Destinations Tab */}
           <TabsContent value="destination" className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="location">Location or Region</Label>
@@ -283,7 +265,6 @@ export function ContentGeneratorDialog() {
             </div>
           </TabsContent>
           
-          {/* Places Tab */}
           <TabsContent value="place" className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="place-location">Location</Label>
@@ -335,7 +316,6 @@ export function ContentGeneratorDialog() {
             </div>
           </TabsContent>
           
-          {/* Food Tab */}
           <TabsContent value="food" className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="food-location">Location</Label>
@@ -370,7 +350,6 @@ export function ContentGeneratorDialog() {
             </div>
           </TabsContent>
           
-          {/* Itineraries Tab */}
           <TabsContent value="itinerary" className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="itinerary-location">Destination</Label>
@@ -422,7 +401,6 @@ export function ContentGeneratorDialog() {
             </div>
           </TabsContent>
           
-          {/* Events Tab */}
           <TabsContent value="event" className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="event-location">Location</Label>
