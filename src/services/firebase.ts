@@ -1,7 +1,7 @@
 
 import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { getDatabase, connectDatabaseEmulator } from "firebase/database";
 
@@ -40,6 +40,31 @@ const createDemoAccounts = async () => {
       demoAccounts.forEach(account => {
         console.log(` - ${account.isAdmin ? "Admin" : "Regular"} user: ${account.email} / ${account.password}`);
       });
+      
+      // Actually create the accounts in development mode
+      for (const account of demoAccounts) {
+        try {
+          // Try to create user
+          const userCredential = await createUserWithEmailAndPassword(auth, account.email, account.password);
+          
+          // Add user details to Firestore
+          await setDoc(doc(firestore, "users", userCredential.user.uid), {
+            email: account.email,
+            isAdmin: account.isAdmin,
+            createdAt: serverTimestamp(),
+            displayName: account.isAdmin ? "Admin User" : "Test User"
+          });
+          
+          console.log(`Created account for ${account.email}`);
+        } catch (error: any) {
+          // If user already exists, just log it
+          if (error.code === 'auth/email-already-in-use') {
+            console.log(`Account for ${account.email} already exists, skipping creation`);
+          } else {
+            console.error(`Error creating account for ${account.email}:`, error);
+          }
+        }
+      }
     } catch (error) {
       console.error("Error setting up demo accounts:", error);
     }
@@ -65,3 +90,4 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export { app, auth, firestore, storage, database };
+

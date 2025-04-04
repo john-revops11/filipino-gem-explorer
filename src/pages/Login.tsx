@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -25,15 +24,16 @@ export default function Login() {
     setIsLoading(true);
     setLoginError("");
 
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
     try {
-      // Regular user login
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
       toast.success("Login successful");
       navigate("/");
     } catch (error: any) {
       console.error("Login error:", error);
       
-      // Handle specific Firebase error codes
       let errorMessage = "Failed to log in";
       
       if (error.code === 'auth/invalid-credential' || 
@@ -45,7 +45,7 @@ export default function Login() {
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection";
       } else if (error.code === 'auth/configuration-not-found') {
-        errorMessage = "Authentication service unavailable. Please try again later";
+        errorMessage = "Firebase authentication is currently unavailable. Please try again in a few minutes.";
       }
       
       setLoginError(errorMessage);
@@ -59,13 +59,11 @@ export default function Login() {
     <div className={`flex min-h-screen flex-col items-center justify-center p-4 ${!isMobile ? "bg-gradient-to-b from-filipino-cream to-filipino-beige" : ""}`}>
       {isMobile && (
         <div className="absolute inset-0 z-0">
-          {/* Mobile background image */}
           <img 
             src="/lovable-uploads/18ecf041-866a-43f4-82c2-848f3bd674f5.png" 
             alt="Filipino landscape" 
             className="h-full w-full object-cover"
           />
-          {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-filipino-forest/50 via-filipino-forest/30 to-filipino-forest/60"></div>
         </div>
       )}
@@ -98,6 +96,7 @@ export default function Login() {
                 <div className="bg-blue-50 p-3 rounded-md text-blue-700 text-sm">
                   <p className="font-semibold">Development Mode</p>
                   <p>Regular user: user@example.com / password123</p>
+                  <p>Admin user: admin@example.com / admin123</p>
                 </div>
               )}
               
