@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generateItinerary } from "@/services/gemini-api";
 import { ItineraryForm } from "./itinerary/ItineraryForm";
 import { ItineraryResult } from "./itinerary/ItineraryResult";
-import databaseService from "@/services/database-service";
+import databaseService, { Itinerary } from "@/services/database-service";
 import { auth } from "@/services/firebase";
 
 export default function EnhancedItineraryOptimizer() {
@@ -58,7 +58,7 @@ export default function EnhancedItineraryOptimizer() {
     setIsSaving(true);
     try {
       // Create itinerary data object based on our database structure
-      const itineraryData = {
+      const itineraryData: Itinerary = {
         name: `${days}-Day Trip to ${destination}`,
         description: `Personalized ${days}-day itinerary for ${destination} with preferences: ${preferences}`,
         days: [], // This would be populated with actual day references in a real implementation

@@ -1,16 +1,134 @@
 
-// Simple mock database service until Firebase is re-integrated
+import { auth, database, firestore } from "./firebase";
+import { ref, set, get, push, remove } from "firebase/database";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
+// Define types based on the database structure
+export interface Location {
+  region_id: string;
+  province_id: string;
+  city_id: string;
+  barangay_id?: string; // Optional for flexibility
+}
+
+export interface ItineraryDay {
+  day: string;
+  activity: string;
+  time: string;
+  place_id?: string; // Reference to a place
+}
+
+export interface Itinerary {
+  name: string;
+  description: string;
+  days: string[] | ItineraryDay[]; // Can be references or embedded data
+  total_price?: string;
+  location: Location;
+  tags: string[];
+  content?: string; // For storing the AI-generated content
+  created_by: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 const databaseService = {
-  saveItinerary: async (itineraryData: any) => {
-    // For now, just log the data and return a mock ID
+  // Save an itinerary to Firebase
+  saveItinerary: async (itineraryData: Itinerary) => {
     console.log("Saving itinerary:", itineraryData);
     
-    // Simulate a network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Return a mock itinerary ID
-    return `itinerary-${Date.now()}`;
-  }
+    try {
+      // Check if we should use Firestore or Realtime Database
+      // For now we'll support both, but could be configured by a setting later
+      
+      // Firestore approach (currently used by the app)
+      const docRef = await addDoc(collection(firestore, 'itineraries'), {
+        ...itineraryData,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+      
+      // Realtime Database approach (prepared for future use)
+      const dbRef = ref(database, `itineraries/${docRef.id}`);
+      await set(dbRef, {
+        ...itineraryData,
+        id: docRef.id // Store the ID in the object too
+      });
+
+      return docRef.id;
+    } catch (error) {
+      console.error("Error saving itinerary:", error);
+      throw error;
+    }
+  },
+
+  // Get an itinerary by ID
+  getItinerary: async (itineraryId: string) => {
+    try {
+      const dbRef = ref(database, `itineraries/${itineraryId}`);
+      const snapshot = await get(dbRef);
+      
+      if (snapshot.exists()) {
+        return snapshot.val();
+      } else {
+        console.log("No itinerary found with ID:", itineraryId);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error getting itinerary:", error);
+      throw error;
+    }
+  },
+
+  // Future methods for locations management
+  getRegions: async () => {
+    try {
+      const dbRef = ref(database, 'regions');
+      const snapshot = await get(dbRef);
+      
+      if (snapshot.exists()) {
+        return snapshot.val();
+      } else {
+        console.log("No regions found");
+        return {};
+      }
+    } catch (error) {
+      console.error("Error getting regions:", error);
+      throw error;
+    }
+  },
+
+  // Method to save itinerary-related data to multiple paths
+  saveCompleteItinerary: async (itineraryData: Itinerary, dayActivities: ItineraryDay[]) => {
+    try {
+      // First save the main itinerary
+      const itineraryId = await databaseService.saveItinerary(itineraryData);
+      
+      // Then save each day activity
+      const dayIds: string[] = [];
+      for (const activity of dayActivities) {
+        const dayRef = ref(database, `tours/${itineraryId}/itinerary`);
+        const newDayRef = push(dayRef);
+        await set(newDayRef, activity);
+        dayIds.push(newDayRef.key as string);
+      }
+      
+      // Update the itinerary with the day IDs
+      const itineraryRef = ref(database, `itineraries/${itineraryId}`);
+      await set(itineraryRef, {
+        ...itineraryData,
+        days: dayIds
+      });
+      
+      return itineraryId;
+    } catch (error) {
+      console.error("Error saving complete itinerary:", error);
+      throw error;
+    }
+  },
+
+  // More methods can be added here for other data categories
+  // like places, food, tours, cultural events, local businesses
 };
 
 export default databaseService;
