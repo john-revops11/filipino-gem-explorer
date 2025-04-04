@@ -88,8 +88,10 @@ export const firestoreService = {
   
   // Add a new document
   addDocument: async (collectionName: string, data: DocumentData) => {
-    // Create a plain object from the data
-    const plainData = Object.assign({}, data) as Record<string, any>;
+    // Convert DocumentData to a plain object that can be safely spread
+    const plainData = Object.fromEntries(
+      Object.entries(data as Record<string, any>)
+    );
     
     const docRef = await addDoc(collection(firestore, collectionName), {
       ...plainData,
@@ -102,8 +104,10 @@ export const firestoreService = {
   
   // Update an existing document
   updateDocument: async (collectionName: string, docId: string, data: DocumentData) => {
-    // Create a plain object from the data
-    const plainData = Object.assign({}, data) as Record<string, any>;
+    // Convert DocumentData to a plain object that can be safely spread
+    const plainData = Object.fromEntries(
+      Object.entries(data as Record<string, any>)
+    );
     
     const docRef = doc(firestore, collectionName, docId);
     
@@ -147,8 +151,10 @@ export const realtimeDbService = {
   
   // Push new data to a list
   pushData: async (path: string, data: any) => {
-    // Create a plain object from the data
-    const plainData = Object.assign({}, data) as Record<string, any>;
+    // Convert to a plain object that can be safely spread
+    const plainData = Object.fromEntries(
+      Object.entries(data as Record<string, any>)
+    );
     
     const listRef = ref(database, path);
     const newItemRef = push(listRef);
