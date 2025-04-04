@@ -1,3 +1,4 @@
+
 import { auth, firestore, storage } from '@/services/firebase';
 import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -891,6 +892,7 @@ const databaseService = {
 };
 
 export const getRandomId = (): string => {
+  // Fix: Change from Number(Math.random() * 10000000).toString() to Math.floor syntax
   return Math.floor(Math.random() * 10000000).toString();
 };
 
