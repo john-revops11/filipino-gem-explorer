@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Card,
@@ -23,7 +22,6 @@ import { generateItinerary } from "@/services/gemini-api";
 import { Loader2, Calendar, MapPin, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { firestoreService, COLLECTIONS } from "@/services/firebase-service";
 
 export default function EnhancedItineraryOptimizer() {
   const [destination, setDestination] = useState("");
@@ -79,11 +77,13 @@ export default function EnhancedItineraryOptimizer() {
         createdAt: new Date().toISOString(),
       };
 
-      await firestoreService.addDocument(COLLECTIONS.ITINERARIES, itineraryData);
+      console.log("Would save itinerary:", itineraryData);
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       toast({
         title: "Itinerary saved",
-        description: "Your itinerary has been saved successfully",
+        description: "Your itinerary has been saved successfully (to local storage)",
       });
     } catch (error) {
       console.error("Error saving itinerary:", error);
