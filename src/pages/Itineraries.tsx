@@ -1,11 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, MapPin, ChevronRight, Clock, Palmtree, Filter, Flag, CalendarDays } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Plus, Calendar, Filter, Flag, CalendarDays, Loader2 } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -20,58 +18,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ItineraryCard } from "@/components/itinerary/ItineraryCard";
 import { EmptyState } from "@/components/shared/EmptyState";
-
-// Mock data for itineraries
-const mockItineraries = [
-  {
-    id: "1",
-    title: "Weekend in Boracay",
-    dateRange: "May 15-18, 2025",
-    days: 4,
-    locations: ["Boracay", "Aklan"],
-    activities: 12,
-    coverImage: "https://images.unsplash.com/photo-1551966775-a4ddc8df052b?q=80&w=2070",
-    status: "upcoming"
-  },
-  {
-    id: "2",
-    title: "Cultural Tour of Vigan",
-    dateRange: "June 5-8, 2025",
-    days: 4,
-    locations: ["Vigan", "Ilocos Sur"],
-    activities: 8,
-    coverImage: "https://images.unsplash.com/photo-1646622566863-1e2c04784ae1?q=80&w=2071",
-    status: "planning"
-  },
-  {
-    id: "3",
-    title: "Island Hopping in Coron",
-    dateRange: "July 20-25, 2025",
-    days: 6,
-    locations: ["Coron", "Palawan"],
-    activities: 15,
-    coverImage: "https://images.unsplash.com/photo-1573790387438-4da905039392?q=80&w=725",
-    status: "planning"
-  }
-];
-
-// Destinations data for new itinerary creation
-const popularDestinations = [
-  { id: "bora", name: "Boracay", region: "Western Visayas" },
-  { id: "pal", name: "El Nido, Palawan", region: "MIMAROPA" },
-  { id: "cebu", name: "Cebu", region: "Central Visayas" },
-  { id: "bohol", name: "Bohol", region: "Central Visayas" },
-  { id: "siargao", name: "Siargao", region: "Caraga" },
-  { id: "manila", name: "Manila", region: "NCR" },
-  { id: "banaue", name: "Banaue Rice Terraces", region: "Cordillera" },
-  { id: "batanes", name: "Batanes", region: "Cagayan Valley" },
-];
+import databaseService, { Itinerary, Location } from "@/services/database-service";
 
 export default function Itineraries() {
-  const [itineraries, setItineraries] = useState(mockItineraries);
+  const [itineraries, setItineraries] = useState<Itinerary[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [newItinerary, setNewItinerary] = useState({
     title: "",
     startDate: "",
@@ -80,7 +35,33 @@ export default function Itineraries() {
     destinations: [] as string[]
   });
   
-  const handleCreateItinerary = () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch itineraries
+        const publicItineraries = await databaseService.getPublicItineraries();
+        
+        // Fetch locations for the destinations dropdown
+        const availableLocations = await databaseService.getLocations();
+        
+        setItineraries(publicItineraries);
+        setLocations(availableLocations);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load itineraries", {
+          description: "There was an error loading itineraries. Please try again."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+  
+  const handleCreateItinerary = async () => {
     // Validate form
     if (!newItinerary.title || !newItinerary.startDate || !newItinerary.endDate) {
       toast({
@@ -91,54 +72,87 @@ export default function Itineraries() {
       return;
     }
     
-    // Create new itinerary object
-    const startDate = new Date(newItinerary.startDate);
-    const endDate = new Date(newItinerary.endDate);
-    
-    // Calculate number of days
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    
-    // Format date range
-    const formatDate = (date: Date) => {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };
-    
-    const dateRange = `${formatDate(startDate)}-${formatDate(endDate)}, ${endDate.getFullYear()}`;
-    
-    // Get selected destination names
-    const selectedDestinations = newItinerary.destinations.map(destId => {
-      const dest = popularDestinations.find(d => d.id === destId);
-      return dest ? dest.name : '';
-    }).filter(Boolean);
-    
-    const newItineraryObj = {
-      id: (itineraries.length + 1).toString(),
-      title: newItinerary.title,
-      dateRange,
-      days: diffDays,
-      locations: selectedDestinations,
-      activities: 0,
-      coverImage: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?q=80&w=2070",
-      status: "planning"
-    };
-    
-    // Add to itineraries list
-    setItineraries([newItineraryObj, ...itineraries]);
-    
-    // Reset form
-    setNewItinerary({
-      title: "",
-      startDate: "",
-      endDate: "",
-      notes: "",
-      destinations: []
-    });
-    
-    toast({
-      title: "Itinerary created",
-      description: "Your new itinerary has been created successfully."
-    });
+    try {
+      // Calculate number of days
+      const startDate = new Date(newItinerary.startDate);
+      const endDate = new Date(newItinerary.endDate);
+      
+      const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      
+      // Format date range
+      const formatDate = (date: Date) => {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      };
+      
+      const dateRange = `${formatDate(startDate)}-${formatDate(endDate)}, ${endDate.getFullYear()}`;
+      
+      // Get selected destination names
+      const selectedDestinations = newItinerary.destinations.map(destId => {
+        const dest = locations.find(d => d.id === destId);
+        return dest ? dest.name : '';
+      }).filter(Boolean);
+      
+      if (selectedDestinations.length === 0) {
+        toast({
+          title: "Missing destination",
+          description: "Please select at least one destination.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Create new itinerary object
+      const mainDestination = selectedDestinations[0];
+      
+      // Generate AI content based on the first selected destination
+      const content = await databaseService.generateItinerary(mainDestination, diffDays, newItinerary.notes || "balanced itinerary");
+      
+      const newItineraryObj: Itinerary = {
+        name: newItinerary.title,
+        description: `${diffDays}-day trip to ${mainDestination}${selectedDestinations.length > 1 ? ' and other destinations' : ''}`,
+        days: diffDays,
+        location: {
+          name: mainDestination
+        },
+        tags: ["Custom", ...selectedDestinations],
+        content: content,
+        created_by: "current-user", // Should be replaced with the actual user ID
+        is_public: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        duration: diffDays.toString(),
+        destination: mainDestination,
+        image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
+        status: 'planning',
+        dateRange
+      };
+      
+      // Save to database
+      const itineraryId = await databaseService.saveItinerary(newItineraryObj);
+      
+      // Add to itineraries list
+      setItineraries([{...newItineraryObj, id: itineraryId}, ...itineraries]);
+      
+      // Reset form
+      setNewItinerary({
+        title: "",
+        startDate: "",
+        endDate: "",
+        notes: "",
+        destinations: []
+      });
+      
+      toast({
+        title: "Itinerary created",
+        description: "Your new itinerary has been created successfully."
+      });
+    } catch (error) {
+      console.error("Error creating itinerary:", error);
+      toast.error("Failed to create itinerary", {
+        description: "There was an error creating your itinerary. Please try again."
+      });
+    }
   };
   
   const handleDestinationToggle = (destId: string) => {
@@ -154,6 +168,22 @@ export default function Itineraries() {
       });
     }
   };
+
+  // Return a loading state while data is being fetched
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pb-16 bg-gradient-to-b from-white to-filipino-sand/10">
+        <Header title="Itineraries" />
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-filipino-teal mx-auto" />
+            <p className="mt-4 text-filipino-darkGray">Loading itineraries...</p>
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-16 bg-gradient-to-b from-white to-filipino-sand/10">
@@ -221,12 +251,12 @@ export default function Itineraries() {
                     Destinations
                   </Label>
                   <div className="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto bg-filipino-sand/10 rounded-md p-3">
-                    {popularDestinations.map((destination) => (
+                    {locations.map((destination) => (
                       <div key={destination.id} className="flex items-start space-x-2">
                         <Checkbox 
                           id={`destination-${destination.id}`} 
-                          checked={newItinerary.destinations.includes(destination.id)}
-                          onCheckedChange={() => handleDestinationToggle(destination.id)}
+                          checked={newItinerary.destinations.includes(destination.id || '')}
+                          onCheckedChange={() => handleDestinationToggle(destination.id || '')}
                           className="data-[state=checked]:bg-filipino-teal data-[state=checked]:border-filipino-teal"
                         />
                         <div className="grid gap-1.5 leading-none">
@@ -247,7 +277,7 @@ export default function Itineraries() {
                 
                 <div className="grid gap-2">
                   <Label htmlFor="notes" className="flex items-center gap-1">
-                    <Palmtree className="h-4 w-4 text-filipino-terracotta" />
+                    <Calendar className="h-4 w-4 text-filipino-terracotta" />
                     Trip Notes
                   </Label>
                   <Textarea 
@@ -308,7 +338,19 @@ export default function Itineraries() {
                 <TabsContent value="all" className="mt-4 space-y-4 animate-fade-in">
                   <div className="grid gap-4 md:grid-cols-2">
                     {itineraries.map((itinerary) => (
-                      <ItineraryCard key={itinerary.id} itinerary={itinerary} />
+                      <ItineraryCard 
+                        key={itinerary.id} 
+                        itinerary={{
+                          id: itinerary.id || '',
+                          title: itinerary.name,
+                          dateRange: itinerary.dateRange || `${itinerary.days} days`,
+                          days: itinerary.days,
+                          locations: [itinerary.destination || itinerary.location.name],
+                          activities: 0,
+                          coverImage: itinerary.image || "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
+                          status: itinerary.status || 'planning'
+                        }} 
+                      />
                     ))}
                   </div>
                 </TabsContent>
@@ -318,7 +360,19 @@ export default function Itineraries() {
                     {itineraries
                       .filter((itinerary) => itinerary.status === "upcoming")
                       .map((itinerary) => (
-                        <ItineraryCard key={itinerary.id} itinerary={itinerary} />
+                        <ItineraryCard 
+                          key={itinerary.id} 
+                          itinerary={{
+                            id: itinerary.id || '',
+                            title: itinerary.name,
+                            dateRange: itinerary.dateRange || `${itinerary.days} days`,
+                            days: itinerary.days,
+                            locations: [itinerary.destination || itinerary.location.name],
+                            activities: 0,
+                            coverImage: itinerary.image || "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
+                            status: itinerary.status || 'upcoming'
+                          }} 
+                        />
                       ))}
                   </div>
                 </TabsContent>
@@ -326,9 +380,21 @@ export default function Itineraries() {
                 <TabsContent value="planning" className="mt-4 space-y-4 animate-fade-in">
                   <div className="grid gap-4 md:grid-cols-2">
                     {itineraries
-                      .filter((itinerary) => itinerary.status === "planning")
+                      .filter((itinerary) => itinerary.status === "planning" || !itinerary.status)
                       .map((itinerary) => (
-                        <ItineraryCard key={itinerary.id} itinerary={itinerary} />
+                        <ItineraryCard 
+                          key={itinerary.id} 
+                          itinerary={{
+                            id: itinerary.id || '',
+                            title: itinerary.name,
+                            dateRange: itinerary.dateRange || `${itinerary.days} days`,
+                            days: itinerary.days,
+                            locations: [itinerary.destination || itinerary.location.name],
+                            activities: 0,
+                            coverImage: itinerary.image || "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
+                            status: itinerary.status || 'planning'
+                          }} 
+                        />
                       ))}
                   </div>
                 </TabsContent>
@@ -349,7 +415,6 @@ export default function Itineraries() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
-                  {/* Same dialog content as above */}
                   <DialogHeader>
                     <DialogTitle className="text-center text-filipino-darkGray">Create New Adventure</DialogTitle>
                   </DialogHeader>
@@ -400,12 +465,12 @@ export default function Itineraries() {
                         Destinations
                       </Label>
                       <div className="grid grid-cols-2 gap-2 mt-1 max-h-40 overflow-y-auto bg-filipino-sand/10 rounded-md p-3">
-                        {popularDestinations.map((destination) => (
+                        {locations.map((destination) => (
                           <div key={destination.id} className="flex items-start space-x-2">
                             <Checkbox 
                               id={`destination-first-${destination.id}`} 
-                              checked={newItinerary.destinations.includes(destination.id)}
-                              onCheckedChange={() => handleDestinationToggle(destination.id)}
+                              checked={newItinerary.destinations.includes(destination.id || '')}
+                              onCheckedChange={() => handleDestinationToggle(destination.id || '')}
                               className="data-[state=checked]:bg-filipino-teal data-[state=checked]:border-filipino-teal"
                             />
                             <div className="grid gap-1.5 leading-none">
@@ -426,7 +491,7 @@ export default function Itineraries() {
                     
                     <div className="grid gap-2">
                       <Label htmlFor="notes-first" className="flex items-center gap-1">
-                        <Palmtree className="h-4 w-4 text-filipino-terracotta" />
+                        <Calendar className="h-4 w-4 text-filipino-terracotta" />
                         Trip Notes
                       </Label>
                       <Textarea 

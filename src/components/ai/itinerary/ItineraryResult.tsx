@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, Share2, Download, Bookmark, BookmarkCheck } from "lucide-react";
 import { toast } from "sonner";
+import databaseService from "@/services/database-service";
+import { auth } from "@/services/firebase";
 
 interface ItineraryResultProps {
   destination: string;
@@ -29,12 +31,41 @@ export function ItineraryResult({
 }: ItineraryResultProps) {
   const [isSaved, setIsSaved] = useState(false);
 
-  const handleSave = () => {
-    onSave();
-    setIsSaved(true);
-    toast.success("Itinerary saved successfully!", {
-      description: `Your ${days}-day itinerary for ${destination} has been saved to your profile.`,
-    });
+  const handleSave = async () => {
+    try {
+      // Get the current user
+      const user = auth.currentUser;
+
+      if (!user) {
+        toast.error("You need to be logged in to save itineraries", {
+          description: "Please sign in or create an account to save this itinerary."
+        });
+        return;
+      }
+
+      // Save the itinerary to Firebase
+      await databaseService.saveGeneratedItinerary(
+        destination,
+        days,
+        itineraryContent,
+        user.uid
+      );
+
+      // Update local state
+      setIsSaved(true);
+      
+      // Call the parent component's onSave handler
+      onSave();
+      
+      toast.success("Itinerary saved successfully!", {
+        description: `Your ${days}-day itinerary for ${destination} has been saved to your profile.`,
+      });
+    } catch (error) {
+      console.error("Error saving itinerary:", error);
+      toast.error("Failed to save itinerary", {
+        description: "There was an error saving your itinerary. Please try again."
+      });
+    }
   };
 
   const handleDownload = () => {

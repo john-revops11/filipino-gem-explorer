@@ -7,44 +7,245 @@ import {
   serverTimestamp, 
   getDocs, 
   where, 
-  query as firestoreQuery 
+  query as firestoreQuery,
+  doc,
+  getDoc
 } from "firebase/firestore";
 import { toast } from "sonner";
+import { generateItinerary } from "./gemini-api";
 
 // Define types based on the database structure
 export interface Location {
-  region_id: string;
-  province_id: string;
-  city_id: string;
-  barangay_id?: string; // Optional for flexibility
+  id?: string;
+  name: string;
+  region: string;
+  province?: string;
+  description?: string;
+  image?: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+  tags?: string[];
+}
+
+export interface Food {
+  id?: string;
+  name: string;
+  type: string;
+  description: string;
+  price_range?: string;
+  location_id: string;
+  image?: string;
+  tags?: string[];
+}
+
+export interface Tour {
+  id?: string;
+  name: string;
+  description: string;
+  price_range: string;
+  duration: string;
+  location_id: string;
+  image?: string;
+  includes?: string[];
+  highlights?: string[];
 }
 
 export interface ItineraryDay {
   day: string;
-  activity: string;
-  time: string;
-  place_id?: string; // Reference to a place
+  activities: Array<{
+    time: string;
+    title: string;
+    type: "activity" | "transport" | "food" | "accommodation" | "rest";
+    location?: string;
+    description?: string;
+    cost?: string;
+  }>;
 }
 
 export interface Itinerary {
+  id?: string;
   name: string;
   description: string;
-  days: string[] | ItineraryDay[]; // Can be references or embedded data
-  total_price?: string;
-  location: Location;
-  tags: string[];
+  days: number;
   content?: string; // For storing the AI-generated content
-  created_by: string;
-  is_public: boolean;
-  created_at: string;
-  updated_at: string;
+  location: {
+    name: string;
+    region_id?: string;
+    province_id?: string;
+    city_id?: string;
+  };
+  tags?: string[];
+  created_by?: string;
+  is_public?: boolean;
+  created_at?: any;
+  updated_at?: any;
   duration?: string; // Number of days
   destination?: string; // Main destination
   image?: string; // Cover image URL
+  status?: 'planning' | 'upcoming' | 'completed';
+  dateRange?: string;
 }
 
 const databaseService = {
-  // Save an itinerary to Firebase
+  // LOCATIONS
+  saveLocation: async (locationData: Location) => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'locations'), {
+        ...locationData,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+      
+      return docRef.id;
+    } catch (error) {
+      console.error("Error saving location:", error);
+      toast.error("Failed to save location", {
+        description: "There was an error saving the location. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  getLocations: async () => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'locations'));
+      const locations: Location[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        locations.push({
+          id: doc.id,
+          ...doc.data() as Location
+        });
+      });
+      
+      return locations;
+    } catch (error) {
+      console.error("Error getting locations:", error);
+      toast.error("Failed to load locations", {
+        description: "There was an error retrieving locations. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  getLocationById: async (locationId: string) => {
+    try {
+      const docRef = doc(firestore, 'locations', locationId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data() as Location
+        };
+      } else {
+        console.log("No location found with ID:", locationId);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error getting location:", error);
+      toast.error("Failed to retrieve location", {
+        description: "There was an error loading the location. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  // FOOD
+  saveFoodItem: async (foodData: Food) => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'food'), {
+        ...foodData,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+      
+      return docRef.id;
+    } catch (error) {
+      console.error("Error saving food item:", error);
+      toast.error("Failed to save food item", {
+        description: "There was an error saving the food item. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  getFoodItemsByLocation: async (locationId: string) => {
+    try {
+      const foodQuery = firestoreQuery(
+        collection(firestore, 'food'),
+        where('location_id', '==', locationId)
+      );
+      
+      const querySnapshot = await getDocs(foodQuery);
+      const foodItems: Food[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        foodItems.push({
+          id: doc.id,
+          ...doc.data() as Food
+        });
+      });
+      
+      return foodItems;
+    } catch (error) {
+      console.error("Error getting food items:", error);
+      toast.error("Failed to load food items", {
+        description: "There was an error retrieving food items. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  // TOURS
+  saveTour: async (tourData: Tour) => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'tours'), {
+        ...tourData,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      });
+      
+      return docRef.id;
+    } catch (error) {
+      console.error("Error saving tour:", error);
+      toast.error("Failed to save tour", {
+        description: "There was an error saving the tour. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  getToursByLocation: async (locationId: string) => {
+    try {
+      const toursQuery = firestoreQuery(
+        collection(firestore, 'tours'),
+        where('location_id', '==', locationId)
+      );
+      
+      const querySnapshot = await getDocs(toursQuery);
+      const tours: Tour[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        tours.push({
+          id: doc.id,
+          ...doc.data() as Tour
+        });
+      });
+      
+      return tours;
+    } catch (error) {
+      console.error("Error getting tours:", error);
+      toast.error("Failed to load tours", {
+        description: "There was an error retrieving tours. Please try again."
+      });
+      throw error;
+    }
+  },
+  
+  // ITINERARIES
   saveItinerary: async (itineraryData: Itinerary) => {
     console.log("Saving itinerary:", itineraryData);
     
@@ -79,11 +280,14 @@ const databaseService = {
   // Get an itinerary by ID
   getItinerary: async (itineraryId: string) => {
     try {
-      const dbRef = ref(database, `itineraries/${itineraryId}`);
-      const snapshot = await get(dbRef);
+      const docRef = doc(firestore, 'itineraries', itineraryId);
+      const docSnap = await getDoc(docRef);
       
-      if (snapshot.exists()) {
-        return snapshot.val();
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data() as Itinerary
+        };
       } else {
         console.log("No itinerary found with ID:", itineraryId);
         return null;
@@ -112,12 +316,12 @@ const databaseService = {
       );
       
       const querySnapshot = await getDocs(itinerariesQuery);
-      const itineraries: any[] = [];
+      const itineraries: Itinerary[] = [];
       
       querySnapshot.forEach((doc) => {
         itineraries.push({
           id: doc.id,
-          ...doc.data()
+          ...doc.data() as Itinerary
         });
       });
       
@@ -126,6 +330,34 @@ const databaseService = {
       console.error("Error getting user itineraries:", error);
       toast.error("Failed to load your itineraries", {
         description: "There was an error retrieving your saved itineraries. Please try again."
+      });
+      throw error;
+    }
+  },
+
+  // Get public itineraries
+  getPublicItineraries: async () => {
+    try {
+      const itinerariesQuery = firestoreQuery(
+        collection(firestore, 'itineraries'),
+        where('is_public', '==', true)
+      );
+      
+      const querySnapshot = await getDocs(itinerariesQuery);
+      const itineraries: Itinerary[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        itineraries.push({
+          id: doc.id,
+          ...doc.data() as Itinerary
+        });
+      });
+      
+      return itineraries;
+    } catch (error) {
+      console.error("Error getting public itineraries:", error);
+      toast.error("Failed to load itineraries", {
+        description: "There was an error retrieving public itineraries. Please try again."
       });
       throw error;
     }
@@ -144,11 +376,9 @@ const databaseService = {
       const itineraryData: Itinerary = {
         name: `${days}-Day Itinerary for ${destination}`,
         description: `AI-generated ${days}-day travel plan for ${destination}`,
-        days: [],
+        days: parseInt(days),
         location: {
-          region_id: "",
-          province_id: "",
-          city_id: ""
+          name: destination
         },
         tags: ["AI-generated"],
         content: content,
@@ -158,7 +388,8 @@ const databaseService = {
         updated_at: new Date().toISOString(),
         duration: days,
         destination: destination,
-        image: `/assets/destinations/${destination.toLowerCase().replace(/\s+/g, '-')}.jpg` // Default image path
+        image: `/assets/destinations/${destination.toLowerCase().replace(/\s+/g, '-')}.jpg`, // Default image path
+        status: 'planning'
       };
 
       return await databaseService.saveItinerary(itineraryData);
@@ -171,58 +402,128 @@ const databaseService = {
     }
   },
 
-  // Future methods for locations management
-  getRegions: async () => {
+  // Generate initial data for the database
+  generateInitialData: async () => {
     try {
-      const dbRef = ref(database, 'regions');
-      const snapshot = await get(dbRef);
-      
-      if (snapshot.exists()) {
-        return snapshot.val();
-      } else {
-        console.log("No regions found");
-        return {};
-      }
-    } catch (error) {
-      console.error("Error getting regions:", error);
-      throw error;
-    }
-  },
-
-  // Method to save itinerary-related data to multiple paths
-  saveCompleteItinerary: async (itineraryData: Itinerary, dayActivities: ItineraryDay[]) => {
-    try {
-      // First save the main itinerary
-      const itineraryId = await databaseService.saveItinerary(itineraryData);
-      
-      // Then save each day activity
-      const dayIds: string[] = [];
-      for (const activity of dayActivities) {
-        const dayRef = ref(database, `tours/${itineraryId}/itinerary`);
-        const newDayRef = push(dayRef);
-        await set(newDayRef, activity);
-        dayIds.push(newDayRef.key as string);
+      // Check if data already exists
+      const locationsSnapshot = await getDocs(collection(firestore, 'locations'));
+      if (!locationsSnapshot.empty) {
+        console.log("Initial data already exists, skipping generation");
+        return;
       }
       
-      // Update the itinerary with the day IDs
-      const itineraryRef = ref(database, `itineraries/${itineraryId}`);
-      await set(itineraryRef, {
-        ...itineraryData,
-        days: dayIds
-      });
+      // Define regions and initial locations
+      const regions = [
+        { name: "Luzon", locations: ["Manila", "Baguio", "Batangas"] },
+        { name: "Visayas", locations: ["Cebu", "Boracay", "Bohol"] },
+        { name: "Mindanao", locations: ["Davao", "Siargao", "Zamboanga"] }
+      ];
       
-      return itineraryId;
-    } catch (error) {
-      console.error("Error saving complete itinerary:", error);
-      toast.error("Failed to save complete itinerary", {
-        description: "There was an error saving your itinerary details. Please try again."
+      for (const region of regions) {
+        for (const locationName of region.locations) {
+          // Save location
+          const locationData: Location = {
+            name: locationName,
+            region: region.name,
+            description: `${locationName} is a beautiful destination in the ${region.name} region of the Philippines.`,
+            tags: ["Popular", "Tourist Spot"],
+            image: `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80`,
+          };
+          
+          const locationId = await databaseService.saveLocation(locationData);
+          
+          // Generate sample food for this location
+          const foodItems = [
+            { 
+              name: `${locationName} Special Dish`, 
+              type: "Local Specialty", 
+              description: `A special dish from ${locationName}`,
+              price_range: "₱100-₱300",
+              location_id: locationId,
+              tags: ["Local", "Traditional"]
+            },
+            { 
+              name: `Seafood in ${locationName}`, 
+              type: "Seafood", 
+              description: `Fresh seafood from the waters of ${locationName}`,
+              price_range: "₱200-₱500",
+              location_id: locationId,
+              tags: ["Seafood", "Fresh"]
+            }
+          ];
+          
+          for (const foodItem of foodItems) {
+            await databaseService.saveFoodItem(foodItem);
+          }
+          
+          // Generate sample tours for this location
+          const tours = [
+            { 
+              name: `${locationName} City Tour`, 
+              description: `Explore the beautiful city of ${locationName}`,
+              price_range: "₱500-₱1000",
+              duration: "4 hours",
+              location_id: locationId,
+              highlights: ["Historical sites", "Local cuisine", "Cultural experiences"]
+            },
+            { 
+              name: `${locationName} Adventure Tour`, 
+              description: `Experience thrilling adventures in ${locationName}`,
+              price_range: "₱1000-₱2000",
+              duration: "Full day",
+              location_id: locationId,
+              highlights: ["Nature trails", "Water activities", "Mountain views"]
+            }
+          ];
+          
+          for (const tour of tours) {
+            await databaseService.saveTour(tour);
+          }
+          
+          // Generate a sample AI itinerary for this location
+          try {
+            const daysOptions = ["3", "5", "7"];
+            const randomDaysIndex = Math.floor(Math.random() * daysOptions.length);
+            const days = daysOptions[randomDaysIndex];
+            
+            // Call the AI service to generate the content
+            const itineraryContent = await generateItinerary(locationName, parseInt(days), "balanced, cultural experiences");
+            
+            // Create the itinerary object
+            const itineraryData: Itinerary = {
+              name: `${days}-Day ${locationName} Experience`,
+              description: `Discover the best of ${locationName} in ${days} days`,
+              days: parseInt(days),
+              location: {
+                name: locationName
+              },
+              tags: ["AI-generated", "Popular", locationName],
+              content: itineraryContent,
+              created_by: "system",
+              is_public: true,
+              duration: days,
+              destination: locationName,
+              image: `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80`,
+              status: 'planning'
+            };
+            
+            await databaseService.saveItinerary(itineraryData);
+          } catch (error) {
+            console.error(`Error generating itinerary for ${locationName}:`, error);
+          }
+        }
+      }
+      
+      toast.success("Initial data generated successfully", {
+        description: "Sample locations, food, tours, and itineraries have been created."
       });
-      throw error;
+    } catch (error) {
+      console.error("Error generating initial data:", error);
+      toast.error("Failed to generate initial data", {
+        description: "There was an error creating the sample data. Please try again."
+      });
     }
-  },
-
-  // More methods can be added here for other data categories
-  // like places, food, tours, cultural events, local businesses
+  }
 };
 
 export default databaseService;

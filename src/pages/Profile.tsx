@@ -1,67 +1,113 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { auth } from "@/services/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import databaseService from "@/services/database-service";
 
-// Mock user data
-const userData = {
-  name: "Maria Santos",
-  email: "maria@example.com",
+// Default user data for non-logged in users or when data is loading
+const defaultUserData = {
+  name: "Guest User",
+  email: "guest@example.com",
   avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=776&q=80",
-  location: "Manila, Philippines",
-  bio: "Passionate traveler exploring the beautiful islands of the Philippines. Love food, culture, and adventure!",
-  memberSince: "January 2024",
-  interests: ["Beaches", "Food", "Cultural Heritage", "Island Hopping", "Adventure"],
+  location: "Philippines",
+  bio: "Join our community to personalize your experience!",
+  memberSince: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+  interests: ["Beaches", "Food", "Cultural Heritage"],
 };
 
-// Mock saved items
-const savedItems = [
-  {
-    id: "save1",
-    type: "destination" as const,
-    name: "Boracay Island",
-    image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
-    date: "Saved on Oct 15, 2024",
-  },
-  {
-    id: "save2",
-    type: "itinerary" as const,
-    name: "3 Days in Palawan",
-    image: "https://images.unsplash.com/photo-1573790387438-4da905039392?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=725&q=80",
-    date: "Saved on Sep 20, 2024",
-  },
-];
-
-// Mock user activity
-const userActivity = [
-  {
-    id: "act1",
-    type: "visit" as const,
-    title: "Chocolate Hills",
-    location: "Bohol",
-    date: "April 1, 2024",
-  },
-  {
-    id: "act2",
-    type: "review" as const,
-    title: "El Nido Resorts",
-    location: "Palawan",
-    date: "March 22, 2024", 
-    rating: 5,
-  },
-  {
-    id: "act3",
-    type: "booking" as const,
-    title: "Island Hopping Tour",
-    location: "Coron, Palawan",
-    date: "Booked for May 15, 2024",
-  },
-];
-
 export default function Profile() {
-  const [profile, setProfile] = useState(userData);
+  const [profile, setProfile] = useState(defaultUserData);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [savedItems, setSavedItems] = useState([]);
+  const [userActivity, setUserActivity] = useState([]);
+
+  useEffect(() => {
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setIsLoading(true);
+      
+      if (user) {
+        // User is logged in
+        setUserId(user.uid);
+        
+        // Here you would typically fetch the user profile from your database
+        // For now, we'll just use some dummy data with the user's email
+        setProfile({
+          ...defaultUserData,
+          name: user.displayName || "Filipino Traveler",
+          email: user.email || "user@example.com",
+          avatar: user.photoURL || defaultUserData.avatar,
+          memberSince: new Date(user.metadata.creationTime || Date.now()).toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+          }),
+        });
+        
+        try {
+          // Fetch saved items for the user
+          const userItineraries = await databaseService.getUserItineraries(user.uid);
+          
+          // Fetch user activity (mock data for now)
+          // In a real app, you would have a separate collection for user activity
+          const activity = [
+            {
+              id: "act1",
+              type: "visit" as const,
+              title: "Visited Profile Page",
+              location: "App",
+              date: new Date().toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+              }),
+            }
+          ];
+          
+          // Update state
+          setSavedItems(userItineraries);
+          setUserActivity(activity);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          toast.error("Failed to load user data", {
+            description: "There was an error loading your profile data. Please try again."
+          });
+        }
+      } else {
+        // No user is logged in
+        setUserId(null);
+        setProfile(defaultUserData);
+        setSavedItems([]);
+        setUserActivity([]);
+      }
+      
+      setIsLoading(false);
+    });
+    
+    // Clean up the listener when the component unmounts
+    return () => unsubscribe();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pb-16">
+        <Header title="Profile" showSearch={false} />
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-filipino-teal mx-auto" />
+            <p className="mt-4 text-filipino-darkGray">Loading profile...</p>
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-16">
@@ -75,7 +121,8 @@ export default function Profile() {
         
         <ProfileTabs 
           savedItems={savedItems} 
-          userActivity={userActivity} 
+          userActivity={userActivity}
+          userId={userId || undefined}
         />
       </div>
       
