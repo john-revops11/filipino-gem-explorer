@@ -69,6 +69,9 @@ export default {
 					lightBeige: '#F5F5DC', // New color - Light Beige
 					darkGray: '#333333',  // New color - Dark Gray
 					sunnyYellow: '#FFD700', // New color - Sunny Yellow
+					vibrantGreen: '#00CC66', // New vibrant green
+					vibrantRed: '#FF3333', // New vibrant red
+					vibrantBlue: '#0066FF', // New vibrant blue
 					terracotta: '#FF5722', // Keep existing vibrant color
 					ochre: '#F44336',     // Keep existing vibrant color
 					teal: '#00BCD4',      // Keep existing vibrant color

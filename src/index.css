@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap');
 
 @tailwind base;
@@ -20,16 +19,16 @@
     --primary: 35 34% 59%;
     --primary-foreground: 0 0% 100%;
 
-    /* Updated secondary color to Deep Teal */
-    --secondary: 180 100% 25%;
+    /* Updated secondary color to Vibrant Blue */
+    --secondary: 216 100% 50%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 10% 96%;
     --muted-foreground: 220 10% 45%;
 
-    /* Updated accent color to Sunny Yellow */
-    --accent: 51 100% 50%;
-    --accent-foreground: 0 0% 20%;
+    /* Updated accent color to Vibrant Red */
+    --accent: 0 100% 60%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -64,16 +63,16 @@
     --primary: 35 34% 59%;
     --primary-foreground: 0 0% 100%;
 
-    /* Updated secondary color to Deep Teal for dark mode */
-    --secondary: 180 100% 25%;
+    /* Updated secondary color to Vibrant Blue for dark mode */
+    --secondary: 216 100% 50%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 10% 15%;
     --muted-foreground: 220 10% 70%;
 
-    /* Updated accent color to Sunny Yellow for dark mode */
-    --accent: 51 100% 50%;
-    --accent-foreground: 0 0% 20%;
+    /* Updated accent color to Vibrant Green for dark mode */
+    --accent: 144 100% 40%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -111,5 +110,15 @@
     background-color: white;
   }
   
-  /* ... keep existing code (destination card styles, gradient overlay, section title etc.) */
+  .destination-card {
+    @apply relative rounded-lg overflow-hidden shadow-md;
+  }
+
+  .gradient-overlay {
+    @apply absolute inset-0 bg-gradient-to-b from-transparent to-black/80;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-filipino-darkGray;
+  }
 }
