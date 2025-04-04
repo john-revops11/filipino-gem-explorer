@@ -2,16 +2,8 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, MapPin, Settings, User } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { ProfileSettings } from "@/components/profile/ProfileSettings";
-import { SavedItems } from "@/components/profile/SavedItems";
-import { UserActivity } from "@/components/profile/UserActivity";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileTabs } from "@/components/profile/ProfileTabs";
 
 // Mock user data
 const userData = {
@@ -70,109 +62,21 @@ const userActivity = [
 
 export default function Profile() {
   const [profile, setProfile] = useState(userData);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-  const handleSaveProfile = (updatedProfile: any) => {
-    setProfile({...profile, ...updatedProfile});
-    setIsSettingsOpen(false);
-    toast({
-      title: "Profile updated",
-      description: "Your profile has been updated successfully.",
-    });
-  };
-
-  const handleLogout = () => {
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully.",
-    });
-    // In a real app, this would handle actual logout logic
-  };
 
   return (
     <div className="min-h-screen pb-16">
       <Header title="Profile" showSearch={false} />
       
       <div className="p-4">
-        <Card className="border-0 shadow-sm bg-gradient-to-b from-white to-filipino-sand/30 mb-6">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20 border-2 border-white shadow-md">
-                  <AvatarImage src={profile.avatar} alt={profile.name} />
-                  <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-2xl">{profile.name}</CardTitle>
-                  <CardDescription className="flex items-center mt-1">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {profile.location}
-                  </CardDescription>
-                </div>
-              </div>
-              
-              <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Settings className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <div className="py-6">
-                    <h2 className="text-lg font-semibold mb-6">Edit Profile</h2>
-                    <ProfileSettings 
-                      profile={profile}
-                      onSave={handleSaveProfile}
-                      onCancel={() => setIsSettingsOpen(false)}
-                    />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mt-4">{profile.bio}</p>
-            <div className="flex flex-wrap gap-2 mt-4">
-              {profile.interests.map((interest) => (
-                <span key={interest} className="px-2 py-1 rounded-full text-xs bg-filipino-teal/10 text-filipino-teal">
-                  {interest}
-                </span>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter className="border-t pt-4">
-            <Button variant="ghost" className="text-filipino-terracotta flex items-center" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </CardFooter>
-        </Card>
+        <ProfileHeader 
+          profile={profile} 
+          setProfile={setProfile} 
+        />
         
-        <Tabs defaultValue="saved" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="saved">Saved</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="trips">My Trips</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="saved">
-            <SavedItems items={savedItems} />
-          </TabsContent>
-          
-          <TabsContent value="activity">
-            <UserActivity activities={userActivity} />
-          </TabsContent>
-          
-          <TabsContent value="trips">
-            <div className="flex items-center justify-center h-40 text-center">
-              <div>
-                <User className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground">You haven't booked any trips yet.</p>
-                <Button className="mt-4 bg-filipino-terracotta">Start Planning</Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+        <ProfileTabs 
+          savedItems={savedItems} 
+          userActivity={userActivity} 
+        />
       </div>
       
       <BottomNav />
