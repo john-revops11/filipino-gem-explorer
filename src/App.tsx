@@ -12,6 +12,7 @@ import Bookings from "./pages/Bookings";
 import BookingDetail from "./pages/BookingDetail";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
 import { useState } from "react";
 import ChatBot from "./components/ai/ChatBot";
 
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/bookings" element={<Bookings />} />
             <Route path="/booking/:id" element={<BookingDetail />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatBot />
