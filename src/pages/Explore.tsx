@@ -25,6 +25,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import EnhancedSearch from "@/components/ai/EnhancedSearch";
+import ItineraryOptimizer from "@/components/ai/ItineraryOptimizer";
 
 // Define interface for destination
 interface Destination {
@@ -41,7 +43,7 @@ interface Destination {
 // Mock data for destinations
 const destinations: Destination[] = [
   {
-    id: "dest1",
+    id: "siargao",
     name: "Siargao Island",
     location: "Surigao del Norte",
     image: "https://images.unsplash.com/photo-1469041797191-50ace28483c3?auto=format&fit=crop&w=800&q=80",
@@ -51,7 +53,7 @@ const destinations: Destination[] = [
     priceRange: "$$",
   },
   {
-    id: "dest2",
+    id: "bohol",
     name: "Chocolate Hills",
     location: "Bohol",
     image: "https://images.unsplash.com/photo-1485833077593-4278bba3f11f?auto=format&fit=crop&w=800&q=80",
@@ -61,8 +63,8 @@ const destinations: Destination[] = [
     priceRange: "$",
   },
   {
-    id: "gem1",
-    name: "Batad Rice Terraces",
+    id: "banaue",
+    name: "Banaue Rice Terraces",
     location: "Ifugao",
     image: "https://images.unsplash.com/photo-1518877593221-1f28583780b4?auto=format&fit=crop&w=800&q=80",
     tags: ["Nature", "Cultural Heritage"],
@@ -71,7 +73,7 @@ const destinations: Destination[] = [
     priceRange: "$",
   },
   {
-    id: "dest3",
+    id: "elnido",
     name: "El Nido",
     location: "Palawan",
     image: "https://images.unsplash.com/photo-1501286353178-1ec871214838?auto=format&fit=crop&w=800&q=80",
@@ -81,7 +83,7 @@ const destinations: Destination[] = [
     priceRange: "$$$",
   },
   {
-    id: "gem2",
+    id: "kalanggaman",
     name: "Kalanggaman Island",
     location: "Leyte",
     image: "https://images.unsplash.com/photo-1465379944081-7f47de8d74ac?auto=format&fit=crop&w=800&q=80",
@@ -91,7 +93,7 @@ const destinations: Destination[] = [
     priceRange: "$$",
   },
   {
-    id: "dest4",
+    id: "mayon",
     name: "Mayon Volcano",
     location: "Albay",
     image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=800&q=80",
@@ -101,7 +103,7 @@ const destinations: Destination[] = [
     priceRange: "$",
   },
   {
-    id: "dest5",
+    id: "coron",
     name: "Coron Island",
     location: "Palawan",
     image: "https://images.unsplash.com/photo-1517971053567-8bde93bc6a58?auto=format&fit=crop&w=800&q=80",
@@ -111,7 +113,7 @@ const destinations: Destination[] = [
     priceRange: "$$$",
   },
   {
-    id: "gem3",
+    id: "siquijor",
     name: "Siquijor Island",
     location: "Central Visayas",
     image: "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80",
@@ -143,7 +145,7 @@ const filterCategories = [
 ];
 
 export default function Explore() {
-  const [viewType, setViewType] = useState<"grid" | "map">("grid");
+  const [viewType, setViewType] = useState<"grid" | "map" | "itinerary">("grid");
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<Record<string, string[]>>({});
@@ -154,12 +156,19 @@ export default function Explore() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const categoryParam = params.get('category');
+    const viewParam = params.get('view');
     
     if (categoryParam) {
       setFilters(prev => ({
         ...prev,
         Activities: [...(prev.Activities || []), categoryParam]
       }));
+    }
+    
+    if (viewParam === 'map') {
+      setViewType('map');
+    } else if (viewParam === 'itinerary') {
+      setViewType('itinerary');
     }
   }, []);
   
@@ -252,23 +261,36 @@ export default function Explore() {
       <Header title="Explore" showSearch={false} />
       
       <div className="p-4">
+        <div className="mb-4">
+          <EnhancedSearch />
+        </div>
+        
         <div className="flex justify-between items-center mb-4">
-          <div className="relative flex-1 mr-2">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              placeholder="Search destinations..."
-              className="w-full pl-10 pr-4 py-2 rounded-full border border-input bg-background"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button 
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+          <div className="flex gap-2">
+            <Button
+              variant={viewType === "grid" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("grid")}
+            >
+              <span className="text-lg">▤</span>
+              <span className="ml-1 hidden sm:inline">Gallery</span>
+            </Button>
+            <Button
+              variant={viewType === "map" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("map")}
+            >
+              <Map className="h-4 w-4" />
+              <span className="ml-1 hidden sm:inline">Map</span>
+            </Button>
+            <Button
+              variant={viewType === "itinerary" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("itinerary")}
+            >
+              <Star className="h-4 w-4" />
+              <span className="ml-1 hidden sm:inline">Itinerary</span>
+            </Button>
           </div>
           
           <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
@@ -359,42 +381,25 @@ export default function Explore() {
           </div>
         )}
         
-        <div className="flex justify-between items-center mb-6">
-          <Tabs 
-            defaultValue="all" 
-            className="w-full"
-            value={activeTab}
-            onValueChange={setActiveTab}
-          >
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="popular">Popular</TabsTrigger>
-              <TabsTrigger value="hidden-gems">Hidden Gems</TabsTrigger>
-              <TabsTrigger value="nearby">Nearby</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <div className="flex ml-2 border rounded-md">
-            <Button
-              variant={viewType === "grid" ? "default" : "ghost"}
-              size="sm"
-              className="px-2"
-              onClick={() => setViewType("grid")}
+        {viewType !== "itinerary" && (
+          <div className="flex justify-between items-center mb-6">
+            <Tabs 
+              defaultValue="all" 
+              className="w-full"
+              value={activeTab}
+              onValueChange={setActiveTab}
             >
-              <span className="text-lg">▤</span>
-            </Button>
-            <Button
-              variant={viewType === "map" ? "default" : "ghost"}
-              size="sm"
-              className="px-2"
-              onClick={() => setViewType("map")}
-            >
-              <Map className="h-4 w-4" />
-            </Button>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="popular">Popular</TabsTrigger>
+                <TabsTrigger value="hidden-gems">Hidden Gems</TabsTrigger>
+                <TabsTrigger value="nearby">Nearby</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
-        </div>
+        )}
         
-        {viewType === "grid" ? (
+        {viewType === "grid" && (
           filteredDestinations.length > 0 ? (
             <motion.div 
               className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
@@ -434,7 +439,7 @@ export default function Explore() {
               </Button>
             </div>
           )
-        ) : (
+        ) : viewType === "map" ? (
           <div className="bg-muted rounded-lg flex items-center justify-center h-[60vh]">
             <div className="text-center">
               <Map className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
@@ -443,6 +448,10 @@ export default function Explore() {
                 Using Google Maps or Mapbox integration
               </p>
             </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-white rounded-lg border">
+            <ItineraryOptimizer />
           </div>
         )}
       </div>

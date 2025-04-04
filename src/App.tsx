@@ -13,6 +13,7 @@ import BookingDetail from "./pages/BookingDetail";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import { useState } from "react";
+import ChatBot from "./components/ai/ChatBot";
 
 const App = () => {
   // Create a new QueryClient instance for each component instance
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <ChatBot />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

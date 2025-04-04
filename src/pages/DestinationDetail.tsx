@@ -18,13 +18,15 @@ import {
   Camera,
   Sunrise,
   Cloud,
-  Utensils
+  Utensils,
+  MessageSquare
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DestinationCard } from "@/components/home/DestinationCard";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useRecommendations } from "@/hooks/use-recommendations";
 
 // Regional destination data
 const getRegionalData = (id: string) => {
@@ -43,7 +45,7 @@ const getRegionalData = (id: string) => {
       ]
     },
     // Palawan
-    "gem2": {
+    "coron": {
       name: "Coron Island",
       location: "Palawan Province",
       description: "Coron is known for its limestone karst landscapes, crystal-clear lagoons, and some of the best preserved coral reefs in the Philippines. The area is famous for its WWII shipwreck diving sites and stunning natural attractions including Twin Lagoon and Kayangan Lake.",
@@ -71,7 +73,7 @@ const getRegionalData = (id: string) => {
       environmentalNotes: "Coron has implemented sustainable tourism practices to protect its fragile marine ecosystems. Visitors are encouraged to follow strict guidelines when snorkeling or diving to minimize damage to coral reefs."
     },
     // Cebu
-    "cebu": {
+    "kawasan": {
       name: "Kawasan Falls",
       location: "Badian, Cebu",
       description: "Kawasan Falls is a three-stage cascade of crystal clear turquoise water flowing from the mountains of Badian. It's one of the most famous waterfalls in the Philippines, known for its stunning color and natural swimming pools.",
@@ -83,12 +85,67 @@ const getRegionalData = (id: string) => {
         { name: "Sinulog Festival", date: "Third Sunday of January", description: "One of the biggest festivals in the Philippines celebrating the Santo Niño (Child Jesus) with colorful street dancing and parades." }
       ]
     },
-    // Default data for other destinations
-    "default": {
+    // Siargao
+    "siargao": {
       name: "Siargao Island",
       location: "Surigao del Norte",
       description: "Known as the 'Surfing Capital of the Philippines', Siargao is a tear-drop shaped island in the province of Surigao del Norte. This tropical paradise is known for its pristine beaches, crystal-clear waters, and world-class waves. Beyond surfing, the island offers a range of activities from island hopping to exploring lush mangrove forests.",
-      culturalNotes: "Siargao has a rich cultural heritage influenced by its history of fishing and agriculture. The local Surigaonon people are known for their warmth and hospitality. Traditional practices like the 'bayanihan' (community cooperation) are still observed, especially during festivals and community events."
+      culturalNotes: "Siargao has a rich cultural heritage influenced by its history of fishing and agriculture. The local Surigaonon people are known for their warmth and hospitality. Traditional practices like the 'bayanihan' (community cooperation) are still observed, especially during festivals and community events.",
+      bestTimeToVisit: "March to September (best surfing conditions)",
+      localCuisine: ["Kinilaw (Filipino ceviche)", "Surf & Turf", "Coconut-based dishes"],
+      traditionalCrafts: ["Surfboard making", "Coconut crafts", "Shell jewelry"],
+      localFestivals: [
+        { name: "Siargao International Surfing Cup", date: "September", description: "Annual surfing competition bringing together professional surfers from around the world." }
+      ],
+      hiddenGems: [
+        {
+          id: "sugba-lagoon",
+          name: "Sugba Lagoon",
+          description: "A stunning emerald-green lagoon surrounded by limestone cliffs, perfect for paddle boarding and cliff jumping.",
+          image: "https://images.unsplash.com/photo-1518509562904-e7ef99cdbc75?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+          id: "pacifico-beach",
+          name: "Pacifico Beach",
+          description: "A less crowded surfing spot with consistent waves, ideal for intermediate to advanced surfers.",
+          image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"
+        }
+      ],
+      environmentalNotes: "Siargao is focused on sustainable tourism with many businesses adopting eco-friendly practices. The island has designated protected areas to preserve its natural beauty and biodiversity."
+    },
+    // Boracay
+    "boracay": {
+      name: "Boracay Island",
+      location: "Aklan Province, Western Visayas",
+      description: "Famous for its powdery white sand beaches and crystal clear waters, Boracay is one of the Philippines' most popular tourist destinations. The 4-kilometer White Beach is the island's main attraction, lined with restaurants, hotels, and shops.",
+      culturalNotes: "Despite its commercial development, Boracay still maintains elements of traditional Filipino culture, with many locals originally from the Ati indigenous group. The island has been revitalized after a 6-month closure in 2018 to address environmental concerns.",
+      bestTimeToVisit: "November to May (dry season)",
+      localCuisine: ["Fresh seafood", "Calamansi muffins", "Chori burger"],
+      traditionalCrafts: ["Shell jewelry", "Coconut crafts", "Puka shell necklaces"],
+      localFestivals: [
+        { name: "Ati-Atihan Festival", date: "January", description: "A colorful celebration honoring the Santo Niño (Infant Jesus) with tribal dances and music." }
+      ]
+    },
+    // El Nido
+    "elnido": {
+      name: "El Nido",
+      location: "Palawan Province",
+      description: "El Nido is renowned for its stunning limestone cliffs, crystal-clear lagoons, and pristine beaches. The area is the gateway to the Bacuit Archipelago, a group of islands with rich marine biodiversity, hidden beaches, and dramatic rock formations.",
+      culturalNotes: "The local communities in El Nido have a deep connection to the sea, with fishing being a traditional way of life. Efforts to preserve local culture while adapting to tourism have led to community-based tourism initiatives that benefit local residents.",
+      bestTimeToVisit: "December to May (dry season)",
+      localCuisine: ["Crocodile sisig", "Fresh seafood", "Halo-halo"],
+      traditionalCrafts: ["Woven products", "Bamboo crafts", "Shell art"],
+      localFestivals: [
+        { name: "Pangalipay sa Kalikasan", date: "November", description: "A celebration of nature and environmental conservation through cultural performances and eco-friendly activities." }
+      ]
+    },
+    // Default data for other destinations
+    "default": {
+      name: "Philippine Destination",
+      location: "Philippines",
+      description: "The Philippines is an archipelago of over 7,000 islands with diverse landscapes, cultures, and experiences to offer visitors. From pristine beaches to volcanic mountains, bustling cities to tranquil rural villages, the country is a treasure trove of natural beauty and cultural heritage.",
+      culturalNotes: "Filipino culture is a vibrant blend of indigenous, Spanish, American, and other Asian influences. The people are known for their hospitality, resilience, and strong family values. Each region has its own unique traditions, cuisines, and festivals.",
+      bestTimeToVisit: "November to April (dry season)"
     }
   };
   
@@ -108,7 +165,7 @@ const getDestinationData = (id: string) => {
     images: [
       "https://images.unsplash.com/photo-1469041797191-50ace28483c3?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1485833077593-4278bba3f11f?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1501286353178-1ec881214838?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1501286353178-1ec871214838?auto=format&fit=crop&w=800&q=80",
     ],
     activities: [
       { id: "act1", name: "Cloud 9 Surfing", price: "₱500", duration: "2 hours" },
@@ -161,6 +218,8 @@ export default function DestinationDetail() {
   const destination = getDestinationData(id || "unknown");
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
+  const { recommendations, isLoading } = useRecommendations(id);
 
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
@@ -307,6 +366,30 @@ export default function DestinationDetail() {
               </div>
             )}
             
+            {recommendations && recommendations.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-bold text-lg mb-3 flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-filipino-teal" />
+                  AI Recommended For You
+                </h3>
+                <div className="space-y-3">
+                  {recommendations.slice(0, 3).map((rec) => (
+                    <Link key={rec.id} to={rec.link}>
+                      <div className="flex items-center p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="h-16 w-16 rounded-md overflow-hidden mr-3">
+                          <img src={rec.image} alt={rec.title} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium">{rec.title}</h4>
+                          <p className="text-xs text-muted-foreground">{rec.description}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-lg">Popular Activities</h3>
               <Button variant="link" className="text-filipino-terracotta p-0">
@@ -449,6 +532,52 @@ export default function DestinationDetail() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <button 
+        onClick={() => setShowAIChat(!showAIChat)}
+        className="fixed bottom-20 right-4 bg-filipino-teal text-white rounded-full p-3 shadow-lg z-10"
+      >
+        <MessageSquare className="h-6 w-6" />
+      </button>
+      
+      {showAIChat && (
+        <div className="fixed bottom-32 right-4 w-[90%] max-w-md bg-white rounded-lg shadow-xl border z-20 max-h-[60vh] flex flex-col">
+          <div className="p-3 border-b flex justify-between items-center bg-filipino-teal text-white rounded-t-lg">
+            <div className="flex items-center">
+              <MessageSquare className="h-5 w-5 mr-2" />
+              <span className="font-medium">AI Travel Assistant</span>
+            </div>
+            <button onClick={() => setShowAIChat(false)}>
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-3 space-y-3 min-h-[200px]">
+            <div className="bg-muted/30 p-3 rounded-lg rounded-tl-none max-w-[85%]">
+              <p className="text-sm">Hi there! I'm your AI travel assistant for {destination.name}. How can I help with your trip planning today?</p>
+            </div>
+            <div className="bg-filipino-teal/10 p-3 rounded-lg rounded-tr-none max-w-[85%] ml-auto">
+              <p className="text-sm">What's the best time to visit?</p>
+            </div>
+            <div className="bg-muted/30 p-3 rounded-lg rounded-tl-none max-w-[85%]">
+              <p className="text-sm">The best time to visit {destination.name} is {destination.bestTimeToVisit || "during the dry season (November to May)"} when the weather is most favorable for outdoor activities.</p>
+            </div>
+          </div>
+          <div className="p-3 border-t">
+            <div className="flex">
+              <input
+                type="text"
+                placeholder="Ask about this destination..."
+                className="flex-1 p-2 rounded-l-md border border-r-0 focus:outline-none focus:ring-1 focus:ring-filipino-teal"
+              />
+              <button className="bg-filipino-teal text-white p-2 rounded-r-md hover:bg-filipino-teal/90">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <BottomNav />
     </div>
