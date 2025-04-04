@@ -141,6 +141,34 @@ const getRegionalData = (id: string) => {
         { name: "Pangalipay sa Kalikasan", date: "November", description: "A celebration of nature and environmental conservation through cultural performances and eco-friendly activities." }
       ]
     },
+    // Adding Bohol data
+    "bohol": {
+      name: "Chocolate Hills",
+      location: "Bohol Province, Central Visayas",
+      description: "The Chocolate Hills are a geological formation in the Bohol province of the Philippines. They are a famous tourist attraction with over 1,200 perfectly cone-shaped hills spread over an area of more than 50 square kilometers. The hills are covered in green grass that turns brown during the dry season, giving them their chocolate-like appearance.",
+      culturalNotes: "Bohol has a rich cultural heritage influenced by Spanish colonial history and indigenous traditions. The province is also home to one of the oldest churches in the Philippines, the Baclayon Church, built in the early 16th century.",
+      bestTimeToVisit: "January to May (dry season)",
+      localCuisine: ["Kalamay (sticky rice dessert)", "Dinulaman (seaweed soup)", "Chicken Binakol"],
+      traditionalCrafts: ["Basket weaving", "Shell craft", "Buri hat making"],
+      localFestivals: [
+        { name: "Sandugo Festival", date: "July", description: "A celebration of the blood compact between Spanish explorer Miguel López de Legazpi and Datu Sikatuna, a native chieftain." }
+      ],
+      hiddenGems: [
+        {
+          id: "can-umantad",
+          name: "Can-umantad Falls",
+          description: "The highest waterfall in Bohol with refreshing pools and lush surroundings, away from the typical tourist path.",
+          image: "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+          id: "anda-beach",
+          name: "Anda Beach",
+          description: "A pristine white sand beach with crystal clear waters, less crowded than the more famous beaches in Panglao.",
+          image: "https://images.unsplash.com/photo-1520454974749-611b7248ffdb?auto=format&fit=crop&w=800&q=80"
+        }
+      ],
+      environmentalNotes: "Bohol is home to the endangered Philippine tarsier, one of the smallest primates in the world. Conservation efforts are in place to protect this species and their natural habitat."
+    },
     // Default data for other destinations
     "default": {
       name: "Philippine Destination",
