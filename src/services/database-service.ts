@@ -1,67 +1,11 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, Auth, User } from "firebase/auth";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, addDoc, deleteDoc, updateDoc, Firestore } from "firebase/firestore";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, addDoc, deleteDoc, updateDoc, Firestore, orderBy, limit, DocumentData } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from "firebase/storage";
 import { v4 as uuidv4 } from 'uuid';
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-// Initialize GoogleAuthProvider
-const googleProvider = new GoogleAuthProvider();
-
-// Function to sign in with Google
-const signInWithGoogle = async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-
-    // Check if the user exists in the users collection
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-      // If the user doesn't exist, create a new document
-      await setDoc(userDocRef, {
-        uid: user.uid,
-        name: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        // Add any other relevant user data
-      });
-    }
-
-    return user;
-  } catch (error) {
-    console.error("Error signing in with Google:", error);
-    throw error;
-  }
-};
-
-// Function to sign out
-const signOutUser = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error("Error signing out:", error);
-    throw error;
-  }
-};
+import { firestoreService, realtimeDbService } from "./firebase-service";
+import { app, auth, firestore, storage, database } from "./firebase";
 
 // Define data types
 export interface Location {
@@ -77,7 +21,7 @@ export interface Place {
   id?: string;
   name: string;
   location: string;
-  location_id: string;
+  location_id?: string;
   description: string;
   type: string;
   image?: string;
@@ -118,6 +62,7 @@ export interface Food {
   name: string;
   description: string;
   location_id: string;
+  type?: string;
   price_range?: string;
   image?: string;
   ingredients?: string[];
@@ -138,7 +83,7 @@ export interface Itinerary {
   };
   content: string;
   tags: string[];
-  userId_created: string; // Changed from created_by to userId_created
+  userId_created: string;
   is_public: boolean;
   created_at: string;
   updated_at: string;
@@ -203,12 +148,17 @@ export interface Event {
   tags?: string[];
   organizer?: string;
   venue?: string;
+  category?: string;
+  date?: string;
+  location?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Function to get all users
 const getAllUsers = async () => {
   try {
-    const usersCollection = collection(db, "users");
+    const usersCollection = collection(firestore, "users");
     const userSnapshot = await getDocs(usersCollection);
     const usersList = userSnapshot.docs.map(doc => ({
       id: doc.id,
@@ -224,7 +174,7 @@ const getAllUsers = async () => {
 // Function to delete a user
 const deleteUser = async (userId: string) => {
   try {
-    const userDocRef = doc(db, "users", userId);
+    const userDocRef = doc(firestore, "users", userId);
     await deleteDoc(userDocRef);
     console.log("User deleted");
   } catch (error) {
@@ -236,7 +186,7 @@ const deleteUser = async (userId: string) => {
 // Function to update a user role
 const updateUserRole = async (userId: string, isAdmin: boolean) => {
   try {
-    const userDocRef = doc(db, "users", userId);
+    const userDocRef = doc(firestore, "users", userId);
     await updateDoc(userDocRef, { isAdmin });
     console.log("User role updated");
   } catch (error) {
@@ -245,10 +195,34 @@ const updateUserRole = async (userId: string, isAdmin: boolean) => {
   }
 };
 
+// Users count and recent users
+const getUsersCount = async () => {
+  try {
+    const usersCollection = collection(firestore, "users");
+    const userSnapshot = await getDocs(usersCollection);
+    return userSnapshot.docs.length;
+  } catch (error) {
+    console.error("Error getting users count:", error);
+    throw error;
+  }
+};
+
+const getRecentUsers = async () => {
+  try {
+    const usersCollection = collection(firestore, "users");
+    const q = query(usersCollection, orderBy("createdAt", "desc"), limit(5));
+    const userSnapshot = await getDocs(q);
+    return userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error getting recent users:", error);
+    return [];
+  }
+};
+
 // Function to add a place
 const addPlace = async (placeData: Place) => {
   try {
-    const placesCollection = collection(db, "places");
+    const placesCollection = collection(firestore, "places");
     const docRef = await addDoc(placesCollection, placeData);
     console.log("Place added with ID:", docRef.id);
     return docRef.id;
@@ -263,8 +237,8 @@ const savePlace = async (placeData: Place) => {
   try {
     if (placeData.id) {
       // Update existing place
-      const placeDocRef = doc(db, "places", placeData.id);
-      await updateDoc(placeDocRef, placeData);
+      const placeDocRef = doc(firestore, "places", placeData.id);
+      await updateDoc(placeDocRef, placeData as unknown as DocumentData);
       return placeData.id;
     } else {
       // Add new place
@@ -279,7 +253,7 @@ const savePlace = async (placeData: Place) => {
 // Function to get a place by ID
 const getPlace = async (id: string): Promise<Place | undefined> => {
   try {
-    const placeDocRef = doc(db, "places", id);
+    const placeDocRef = doc(firestore, "places", id);
     const placeDoc = await getDoc(placeDocRef);
 
     if (placeDoc.exists()) {
@@ -297,7 +271,7 @@ const getPlace = async (id: string): Promise<Place | undefined> => {
 // Function to get all places
 const getPlaces = async (): Promise<Place[]> => {
   try {
-    const placesCollection = collection(db, "places");
+    const placesCollection = collection(firestore, "places");
     const placeSnapshot = await getDocs(placesCollection);
     const placesList = placeSnapshot.docs.map(doc => ({
       id: doc.id,
@@ -313,7 +287,7 @@ const getPlaces = async (): Promise<Place[]> => {
 // Function to get places by query
 const getPlacesByQuery = async (searchQuery: string): Promise<Place[]> => {
   try {
-    const placesCollection = collection(db, "places");
+    const placesCollection = collection(firestore, "places");
     const q = query(
       placesCollection,
       where("tags", "array-contains", searchQuery)
@@ -333,8 +307,8 @@ const getPlacesByQuery = async (searchQuery: string): Promise<Place[]> => {
 // Function to update a place
 const updatePlace = async (id: string, updates: Partial<Place>) => {
   try {
-    const placeDocRef = doc(db, "places", id);
-    await updateDoc(placeDocRef, updates);
+    const placeDocRef = doc(firestore, "places", id);
+    await updateDoc(placeDocRef, updates as unknown as DocumentData);
     console.log("Place updated");
   } catch (error) {
     console.error("Error updating place:", error);
@@ -345,7 +319,7 @@ const updatePlace = async (id: string, updates: Partial<Place>) => {
 // Function to delete a place
 const deletePlace = async (id: string) => {
   try {
-    const placeDocRef = doc(db, "places", id);
+    const placeDocRef = doc(firestore, "places", id);
     await deleteDoc(placeDocRef);
     console.log("Place deleted");
   } catch (error) {
@@ -370,7 +344,7 @@ const uploadImage = async (image: File, path: string): Promise<string> => {
 // Function to get locations
 const getLocations = async (): Promise<Location[]> => {
   try {
-    const locationsCollection = collection(db, "locations");
+    const locationsCollection = collection(firestore, "locations");
     const locationsSnapshot = await getDocs(locationsCollection);
     const locationsList = locationsSnapshot.docs.map(doc => ({
       id: doc.id,
@@ -388,12 +362,12 @@ const saveLocation = async (locationData: Location) => {
   try {
     if (locationData.id) {
       // Update existing location
-      const locationDocRef = doc(db, "locations", locationData.id);
-      await updateDoc(locationDocRef, locationData);
+      const locationDocRef = doc(firestore, "locations", locationData.id);
+      await updateDoc(locationDocRef, locationData as unknown as DocumentData);
       return locationData.id;
     } else {
       // Add new location
-      const locationsCollection = collection(db, "locations");
+      const locationsCollection = collection(firestore, "locations");
       const docRef = await addDoc(locationsCollection, locationData);
       return docRef.id;
     }
@@ -406,7 +380,7 @@ const saveLocation = async (locationData: Location) => {
 // Function to add an itinerary
 const addItinerary = async (itineraryData: Itinerary) => {
   try {
-    const itinerariesCollection = collection(db, "itineraries");
+    const itinerariesCollection = collection(firestore, "itineraries");
     const docRef = await addDoc(itinerariesCollection, itineraryData);
     console.log("Itinerary added with ID:", docRef.id);
     return docRef.id;
@@ -419,7 +393,7 @@ const addItinerary = async (itineraryData: Itinerary) => {
 // Function to get an itinerary by ID
 const getItinerary = async (id: string): Promise<Itinerary | undefined> => {
   try {
-    const itineraryDocRef = doc(db, "itineraries", id);
+    const itineraryDocRef = doc(firestore, "itineraries", id);
     const itineraryDoc = await getDoc(itineraryDocRef);
 
     if (itineraryDoc.exists()) {
@@ -437,7 +411,7 @@ const getItinerary = async (id: string): Promise<Itinerary | undefined> => {
 // Function to get all itineraries
 const getItineraries = async (): Promise<Itinerary[]> => {
   try {
-    const itinerariesCollection = collection(db, "itineraries");
+    const itinerariesCollection = collection(firestore, "itineraries");
     const itinerarySnapshot = await getDocs(itinerariesCollection);
     const itinerariesList = itinerarySnapshot.docs.map(doc => ({
       id: doc.id,
@@ -456,7 +430,7 @@ const getAllItineraries = getItineraries;
 // Function to get itineraries by user ID
 const getItinerariesByUserId = async (userId: string): Promise<Itinerary[]> => {
   try {
-    const itinerariesCollection = collection(db, "itineraries");
+    const itinerariesCollection = collection(firestore, "itineraries");
     const q = query(
       itinerariesCollection,
       where("userId_created", "==", userId)
@@ -479,8 +453,8 @@ const getUserItineraries = getItinerariesByUserId;
 // Function to update an itinerary
 const updateItinerary = async (id: string, updates: Partial<Itinerary>) => {
   try {
-    const itineraryDocRef = doc(db, "itineraries", id);
-    await updateDoc(itineraryDocRef, updates);
+    const itineraryDocRef = doc(firestore, "itineraries", id);
+    await updateDoc(itineraryDocRef, updates as DocumentData);
     console.log("Itinerary updated");
   } catch (error) {
     console.error("Error updating itinerary:", error);
@@ -491,7 +465,7 @@ const updateItinerary = async (id: string, updates: Partial<Itinerary>) => {
 // Function to delete an itinerary
 const deleteItinerary = async (id: string) => {
   try {
-    const itineraryDocRef = doc(db, "itineraries", id);
+    const itineraryDocRef = doc(firestore, "itineraries", id);
     await deleteDoc(itineraryDocRef);
     console.log("Itinerary deleted");
   } catch (error) {
@@ -527,7 +501,7 @@ const generateItinerary = async (params: any): Promise<Itinerary> => {
 // Function to add a booking
 const addBooking = async (bookingData: Booking) => {
   try {
-    const bookingsCollection = collection(db, "bookings");
+    const bookingsCollection = collection(firestore, "bookings");
     const docRef = await addDoc(bookingsCollection, bookingData);
     console.log("Booking added with ID:", docRef.id);
     return docRef.id;
@@ -540,7 +514,7 @@ const addBooking = async (bookingData: Booking) => {
 // Function to get a booking by ID
 const getBooking = async (id: string): Promise<Booking | undefined> => {
   try {
-    const bookingDocRef = doc(db, "bookings", id);
+    const bookingDocRef = doc(firestore, "bookings", id);
     const bookingDoc = await getDoc(bookingDocRef);
 
     if (bookingDoc.exists()) {
@@ -558,7 +532,7 @@ const getBooking = async (id: string): Promise<Booking | undefined> => {
 // Function to get all bookings
 const getBookings = async (): Promise<Booking[]> => {
   try {
-    const bookingsCollection = collection(db, "bookings");
+    const bookingsCollection = collection(firestore, "bookings");
     const bookingSnapshot = await getDocs(bookingsCollection);
     const bookingsList = bookingSnapshot.docs.map(doc => ({
       id: doc.id,
@@ -574,10 +548,35 @@ const getBookings = async (): Promise<Booking[]> => {
 // Function to get all bookings (alias)
 const getAllBookings = getBookings;
 
+// Function to get bookings count
+const getBookingsCount = async (): Promise<number> => {
+  try {
+    const bookingsCollection = collection(firestore, "bookings");
+    const bookingSnapshot = await getDocs(bookingsCollection);
+    return bookingSnapshot.docs.length;
+  } catch (error) {
+    console.error("Error getting bookings count:", error);
+    throw error;
+  }
+};
+
+// Function to get recent bookings
+const getRecentBookings = async (): Promise<Booking[]> => {
+  try {
+    const bookingsCollection = collection(firestore, "bookings");
+    const q = query(bookingsCollection, orderBy("createdAt", "desc"), limit(5));
+    const bookingSnapshot = await getDocs(q);
+    return bookingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Booking[];
+  } catch (error) {
+    console.error("Error getting recent bookings:", error);
+    return [];
+  }
+};
+
 // Function to get bookings by user ID
 const getBookingsByUserId = async (userId: string): Promise<Booking[]> => {
   try {
-    const bookingsCollection = collection(db, "bookings");
+    const bookingsCollection = collection(firestore, "bookings");
     const q = query(
       bookingsCollection,
       where("userId", "==", userId)
@@ -597,8 +596,8 @@ const getBookingsByUserId = async (userId: string): Promise<Booking[]> => {
 // Function to update a booking
 const updateBooking = async (id: string, updates: Partial<Booking>) => {
   try {
-    const bookingDocRef = doc(db, "bookings", id);
-    await updateDoc(bookingDocRef, updates);
+    const bookingDocRef = doc(firestore, "bookings", id);
+    await updateDoc(bookingDocRef, updates as DocumentData);
     console.log("Booking updated");
   } catch (error) {
     console.error("Error updating booking:", error);
@@ -609,7 +608,7 @@ const updateBooking = async (id: string, updates: Partial<Booking>) => {
 // Function to update booking status
 const updateBookingStatus = async (id: string, status: string) => {
   try {
-    const bookingDocRef = doc(db, "bookings", id);
+    const bookingDocRef = doc(firestore, "bookings", id);
     await updateDoc(bookingDocRef, { status });
     console.log("Booking status updated");
   } catch (error) {
@@ -621,7 +620,7 @@ const updateBookingStatus = async (id: string, status: string) => {
 // Function to delete a booking
 const deleteBooking = async (id: string) => {
   try {
-    const bookingDocRef = doc(db, "bookings", id);
+    const bookingDocRef = doc(firestore, "bookings", id);
     await deleteDoc(bookingDocRef);
     console.log("Booking deleted");
   } catch (error) {
@@ -635,12 +634,12 @@ const saveTour = async (tourData: Tour) => {
   try {
     if (tourData.id) {
       // Update existing tour
-      const tourDocRef = doc(db, "tours", tourData.id);
-      await updateDoc(tourDocRef, tourData);
+      const tourDocRef = doc(firestore, "tours", tourData.id);
+      await updateDoc(tourDocRef, tourData as unknown as DocumentData);
       return tourData.id;
     } else {
       // Add new tour
-      const toursCollection = collection(db, "tours");
+      const toursCollection = collection(firestore, "tours");
       const docRef = await addDoc(toursCollection, tourData);
       return docRef.id;
     }
@@ -653,7 +652,7 @@ const saveTour = async (tourData: Tour) => {
 // Function to get tours by location
 const getToursByLocation = async (locationId: string): Promise<Tour[]> => {
   try {
-    const toursCollection = collection(db, "tours");
+    const toursCollection = collection(firestore, "tours");
     const q = query(toursCollection, where("location_id", "==", locationId));
     const tourSnapshot = await getDocs(q);
     const toursList = tourSnapshot.docs.map(doc => ({
@@ -672,12 +671,12 @@ const saveFoodItem = async (foodData: Food) => {
   try {
     if (foodData.id) {
       // Update existing food item
-      const foodDocRef = doc(db, "foods", foodData.id);
-      await updateDoc(foodDocRef, foodData);
+      const foodDocRef = doc(firestore, "foods", foodData.id);
+      await updateDoc(foodDocRef, foodData as unknown as DocumentData);
       return foodData.id;
     } else {
       // Add new food item
-      const foodsCollection = collection(db, "foods");
+      const foodsCollection = collection(firestore, "foods");
       const docRef = await addDoc(foodsCollection, foodData);
       return docRef.id;
     }
@@ -690,7 +689,7 @@ const saveFoodItem = async (foodData: Food) => {
 // Function to get food items by location
 const getFoodItemsByLocation = async (locationId: string): Promise<Food[]> => {
   try {
-    const foodsCollection = collection(db, "foods");
+    const foodsCollection = collection(firestore, "foods");
     const q = query(foodsCollection, where("location_id", "==", locationId));
     const foodSnapshot = await getDocs(q);
     const foodsList = foodSnapshot.docs.map(doc => ({
@@ -704,10 +703,58 @@ const getFoodItemsByLocation = async (locationId: string): Promise<Food[]> => {
   }
 };
 
+// Function to get destinations count
+const getDestinationsCount = async (): Promise<number> => {
+  try {
+    const locationsCollection = collection(firestore, "locations");
+    const snapshot = await getDocs(locationsCollection);
+    return snapshot.docs.length;
+  } catch (error) {
+    console.error("Error getting destinations count:", error);
+    throw error;
+  }
+};
+
+// Generate initial data if needed
+const generateInitialData = async (): Promise<void> => {
+  try {
+    const locationsCollection = collection(firestore, "locations");
+    const locationsSnapshot = await getDocs(locationsCollection);
+    
+    if (locationsSnapshot.empty) {
+      // Add some sample data
+      const sampleLocations = [
+        {
+          name: "Boracay",
+          region: "Visayas",
+          description: "Famous for its white sand beaches and clear blue waters.",
+          image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
+          tags: ["Beach", "Island", "Resort"]
+        },
+        {
+          name: "Manila",
+          region: "Luzon",
+          description: "The capital city of the Philippines with a rich history.",
+          image: "https://images.unsplash.com/photo-1518982380564-d132f05c8ff5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
+          tags: ["City", "Urban", "Historical"]
+        }
+      ];
+      
+      for (const location of sampleLocations) {
+        await addDoc(locationsCollection, location);
+      }
+      
+      console.log("Generated initial sample data");
+    }
+  } catch (error) {
+    console.error("Error generating initial data:", error);
+  }
+};
+
 // Functions for hidden gems
 const getAllHiddenGems = async (): Promise<HiddenGem[]> => {
   try {
-    const hiddenGemsCollection = collection(db, "hidden_gems");
+    const hiddenGemsCollection = collection(firestore, "hidden_gems");
     const snapshot = await getDocs(hiddenGemsCollection);
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -721,7 +768,7 @@ const getAllHiddenGems = async (): Promise<HiddenGem[]> => {
 
 const addHiddenGem = async (data: HiddenGem): Promise<string> => {
   try {
-    const hiddenGemsCollection = collection(db, "hidden_gems");
+    const hiddenGemsCollection = collection(firestore, "hidden_gems");
     const docRef = await addDoc(hiddenGemsCollection, data);
     return docRef.id;
   } catch (error) {
@@ -732,8 +779,8 @@ const addHiddenGem = async (data: HiddenGem): Promise<string> => {
 
 const updateHiddenGem = async (id: string, data: Partial<HiddenGem>): Promise<void> => {
   try {
-    const docRef = doc(db, "hidden_gems", id);
-    await updateDoc(docRef, data);
+    const docRef = doc(firestore, "hidden_gems", id);
+    await updateDoc(docRef, data as DocumentData);
   } catch (error) {
     console.error("Error updating hidden gem:", error);
     throw error;
@@ -742,7 +789,7 @@ const updateHiddenGem = async (id: string, data: Partial<HiddenGem>): Promise<vo
 
 const deleteHiddenGem = async (id: string): Promise<void> => {
   try {
-    const docRef = doc(db, "hidden_gems", id);
+    const docRef = doc(firestore, "hidden_gems", id);
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Error deleting hidden gem:", error);
@@ -752,7 +799,7 @@ const deleteHiddenGem = async (id: string): Promise<void> => {
 
 const updateHiddenGemFeaturedStatus = async (id: string, isFeatured: boolean): Promise<void> => {
   try {
-    const docRef = doc(db, "hidden_gems", id);
+    const docRef = doc(firestore, "hidden_gems", id);
     await updateDoc(docRef, { is_featured: isFeatured });
   } catch (error) {
     console.error("Error updating hidden gem featured status:", error);
@@ -763,7 +810,7 @@ const updateHiddenGemFeaturedStatus = async (id: string, isFeatured: boolean): P
 // Functions for businesses
 const getAllBusinesses = async (): Promise<Business[]> => {
   try {
-    const businessesCollection = collection(db, "businesses");
+    const businessesCollection = collection(firestore, "businesses");
     const snapshot = await getDocs(businessesCollection);
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -777,7 +824,7 @@ const getAllBusinesses = async (): Promise<Business[]> => {
 
 const addBusiness = async (data: Business): Promise<string> => {
   try {
-    const businessesCollection = collection(db, "businesses");
+    const businessesCollection = collection(firestore, "businesses");
     const docRef = await addDoc(businessesCollection, data);
     return docRef.id;
   } catch (error) {
@@ -788,8 +835,8 @@ const addBusiness = async (data: Business): Promise<string> => {
 
 const updateBusiness = async (id: string, data: Partial<Business>): Promise<void> => {
   try {
-    const docRef = doc(db, "businesses", id);
-    await updateDoc(docRef, data);
+    const docRef = doc(firestore, "businesses", id);
+    await updateDoc(docRef, data as DocumentData);
   } catch (error) {
     console.error("Error updating business:", error);
     throw error;
@@ -798,7 +845,7 @@ const updateBusiness = async (id: string, data: Partial<Business>): Promise<void
 
 const deleteBusiness = async (id: string): Promise<void> => {
   try {
-    const docRef = doc(db, "businesses", id);
+    const docRef = doc(firestore, "businesses", id);
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Error deleting business:", error);
@@ -808,7 +855,7 @@ const deleteBusiness = async (id: string): Promise<void> => {
 
 const updateBusinessFeaturedStatus = async (id: string, isFeatured: boolean): Promise<void> => {
   try {
-    const docRef = doc(db, "businesses", id);
+    const docRef = doc(firestore, "businesses", id);
     await updateDoc(docRef, { is_featured: isFeatured });
   } catch (error) {
     console.error("Error updating business featured status:", error);
@@ -819,7 +866,7 @@ const updateBusinessFeaturedStatus = async (id: string, isFeatured: boolean): Pr
 // Functions for events
 const getAllEvents = async (): Promise<Event[]> => {
   try {
-    const eventsCollection = collection(db, "events");
+    const eventsCollection = collection(firestore, "events");
     const snapshot = await getDocs(eventsCollection);
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -833,7 +880,7 @@ const getAllEvents = async (): Promise<Event[]> => {
 
 const addEvent = async (data: Event): Promise<string> => {
   try {
-    const eventsCollection = collection(db, "events");
+    const eventsCollection = collection(firestore, "events");
     const docRef = await addDoc(eventsCollection, data);
     return docRef.id;
   } catch (error) {
@@ -844,8 +891,8 @@ const addEvent = async (data: Event): Promise<string> => {
 
 const updateEvent = async (id: string, data: Partial<Event>): Promise<void> => {
   try {
-    const docRef = doc(db, "events", id);
-    await updateDoc(docRef, data);
+    const docRef = doc(firestore, "events", id);
+    await updateDoc(docRef, data as DocumentData);
   } catch (error) {
     console.error("Error updating event:", error);
     throw error;
@@ -854,7 +901,7 @@ const updateEvent = async (id: string, data: Partial<Event>): Promise<void> => {
 
 const deleteEvent = async (id: string): Promise<void> => {
   try {
-    const docRef = doc(db, "events", id);
+    const docRef = doc(firestore, "events", id);
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Error deleting event:", error);
@@ -862,122 +909,22 @@ const deleteEvent = async (id: string): Promise<void> => {
   }
 };
 
-// Stats functions
-const getUsersCount = async (): Promise<number> => {
-  try {
-    const usersCollection = collection(db, "users");
-    const snapshot = await getDocs(usersCollection);
-    return snapshot.size;
-  } catch (error) {
-    console.error("Error getting users count:", error);
-    throw error;
-  }
-};
-
-const getBookingsCount = async (): Promise<number> => {
-  try {
-    const bookingsCollection = collection(db, "bookings");
-    const snapshot = await getDocs(bookingsCollection);
-    return snapshot.size;
-  } catch (error) {
-    console.error("Error getting bookings count:", error);
-    throw error;
-  }
-};
-
-const getDestinationsCount = async (): Promise<number> => {
-  try {
-    const locationsCollection = collection(db, "locations");
-    const snapshot = await getDocs(locationsCollection);
-    return snapshot.size;
-  } catch (error) {
-    console.error("Error getting destinations count:", error);
-    throw error;
-  }
-};
-
-const getRecentUsers = async (limit = 5): Promise<any[]> => {
-  try {
-    const usersCollection = collection(db, "users");
-    const snapshot = await getDocs(query(usersCollection, where("createdAt", "!=", null)));
-    return snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
-  } catch (error) {
-    console.error("Error getting recent users:", error);
-    throw error;
-  }
-};
-
-const getRecentBookings = async (limit = 5): Promise<Booking[]> => {
-  try {
-    const bookingsCollection = collection(db, "bookings");
-    const snapshot = await getDocs(bookingsCollection);
-    return snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }) as Booking)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
-  } catch (error) {
-    console.error("Error getting recent bookings:", error);
-    throw error;
-  }
-};
-
-// Generate initial data for demo purposes
-const generateInitialData = async () => {
-  try {
-    const locationsSnapshot = await getDocs(collection(db, "locations"));
-    if (locationsSnapshot.empty) {
-      // Add sample locations
-      const locations = [
-        {
-          name: "Manila",
-          region: "Luzon",
-          description: "The capital and largest city of the Philippines.",
-          image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
-          tags: ["City", "Urban", "Capital"]
-        },
-        {
-          name: "Cebu",
-          region: "Visayas",
-          description: "Known for its beautiful beaches and historical sites.",
-          image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
-          tags: ["Beach", "History", "Island"]
-        },
-        {
-          name: "Davao",
-          region: "Mindanao",
-          description: "Famous for its durian fruit and Mount Apo.",
-          image: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80",
-          tags: ["Nature", "Mountain", "Food"]
-        }
-      ];
-
-      for (const location of locations) {
-        await addDoc(collection(db, "locations"), location);
-      }
-
-      console.log("Sample locations added successfully!");
-    }
-  } catch (error) {
-    console.error("Error generating initial data:", error);
-  }
-};
-
-const databaseService = {
+// Export all functions and Firebase instances
+export default {
   auth,
-  db,
+  db: firestore,
   storage,
   signInWithGoogle,
   signOutUser,
-  addPlace,
+  getAllUsers,
+  deleteUser,
+  updateUserRole,
   getPlace,
   getPlaces,
   getPlacesByQuery,
+  savePlace,
   updatePlace,
   deletePlace,
-  savePlace,
   uploadImage,
   getLocations,
   saveLocation,
@@ -985,8 +932,8 @@ const databaseService = {
   getItinerary,
   getItineraries,
   getAllItineraries,
-  getItinerariesByUserId,
   getUserItineraries,
+  getItinerariesByUserId,
   updateItinerary,
   deleteItinerary,
   generateItinerary,
@@ -1002,9 +949,12 @@ const databaseService = {
   getToursByLocation,
   saveFoodItem,
   getFoodItemsByLocation,
-  getAllUsers,
-  deleteUser,
-  updateUserRole,
+  getUsersCount,
+  getBookingsCount,
+  getDestinationsCount,
+  getRecentUsers,
+  getRecentBookings,
+  generateInitialData,
   getAllHiddenGems,
   addHiddenGem,
   updateHiddenGem,
@@ -1018,13 +968,5 @@ const databaseService = {
   getAllEvents,
   addEvent,
   updateEvent,
-  deleteEvent,
-  getUsersCount,
-  getBookingsCount,
-  getDestinationsCount,
-  getRecentUsers,
-  getRecentBookings,
-  generateInitialData
+  deleteEvent
 };
-
-export default databaseService;
