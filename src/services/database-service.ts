@@ -228,16 +228,6 @@ const databaseService = {
     }
   },
   
-  saveLocation: async (location: Location): Promise<string> => {
-    try {
-      const docRef = await addDoc(collection(firestore, 'locations'), location);
-      return docRef.id;
-    } catch (error) {
-      console.error('Error adding location:', error);
-      throw error;
-    }
-  },
-  
   // Destinations
   getAllDestinations: async (): Promise<Destination[]> => {
     try {
