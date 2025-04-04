@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,18 +64,18 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				filipino: {
-					terracotta: '#E94822', // Vivid orange-red (replaces pale blue)
-					ochre: '#F13030', // Bright red (replaces dark blue)
-					teal: '#05B2DC', // Brighter teal
-					yellow: '#FFC107', // Vibrant yellow
-					sand: '#FFF3CD', // Warm light yellow (replaces light blue/sand)
-					forest: '#8BC34A', // Vibrant green (replaces dark blue forest)
-					coral: '#FF5722', // Vibrant coral (replaces light blue coral)
-					navy: '#3F51B5', // Vibrant indigo (replaces navy)
-					red: '#D22730', // Keep the red
-					purple: '#8B5CF6', // Adding vibrant purple
-					pink: '#D946EF', // Adding magenta pink
-					orange: '#F97316', // Adding bright orange
+					terracotta: '#FF5722', // More vibrant orange-red
+					ochre: '#F44336', // Brighter red
+					teal: '#00BCD4', // Brighter teal
+					yellow: '#FFC400', // More vibrant yellow
+					sand: '#FFFFFF', // Changed to white (was warm light yellow)
+					forest: '#76FF03', // More vibrant green
+					coral: '#FF3D00', // More vibrant coral
+					navy: '#3D5AFE', // More vibrant indigo
+					red: '#D50000', // Brighter red
+					purple: '#7C4DFF', // More vibrant purple
+					pink: '#FF00FF', // Brighter magenta pink
+					orange: '#FF6D00', // Brighter orange
 				}
 			},
 			borderRadius: {

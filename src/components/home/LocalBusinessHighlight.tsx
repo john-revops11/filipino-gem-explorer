@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 export function LocalBusinessHighlight() {
   return (
     <section className="py-6">
-      <div className="rounded-lg overflow-hidden bg-filipino-sand border border-filipino-terracotta/20">
+      <div className="rounded-lg overflow-hidden bg-white border border-filipino-terracotta/20 shadow-sm">
         <div className="aspect-video relative">
           <img
             src="https://images.unsplash.com/photo-1452378174528-3090a4bba7b2?auto=format&fit=crop&w=800&q=80"

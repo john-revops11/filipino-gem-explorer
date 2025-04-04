@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    --background: 50 100% 97%;
+    --background: 0 0% 100%;
     --foreground: 220 10% 15%;
 
     --card: 0 0% 100%;
@@ -16,31 +16,31 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 10% 15%;
 
-    /* Updated primary color to vibrant orange-red */
-    --primary: 14 82% 53%;
+    /* Updated primary color to more vibrant orange-red */
+    --primary: 14 90% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Adjusted secondary color to bright green */
-    --secondary: 88 65% 53%;
+    /* Adjusted secondary color to brighter green */
+    --secondary: 88 75% 53%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 45 100% 90%;
+    --muted: 220 10% 96%;
     --muted-foreground: 220 10% 45%;
 
-    /* Updated accent color to vibrant purple */
-    --accent: 265 83% 63%;
+    /* Updated accent color to more vibrant purple */
+    --accent: 265 90% 63%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 30 100% 85%;
-    --input: 30 100% 85%;
-    --ring: 14 82% 53%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 14 90% 53%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -52,27 +52,27 @@
 
   .dark {
     --background: 220 10% 10%;
-    --foreground: 45 100% 90%;
+    --foreground: 0 0% 100%;
 
     --card: 220 10% 12%;
-    --card-foreground: 45 100% 90%;
+    --card-foreground: 0 0% 100%;
 
     --popover: 220 10% 12%;
-    --popover-foreground: 45 100% 90%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Updated primary color to vibrant orange-red for dark mode */
-    --primary: 14 82% 53%;
+    /* Updated primary color to more vibrant orange-red for dark mode */
+    --primary: 14 90% 53%;
     --primary-foreground: 0 0% 100%;
 
-    /* Adjusted secondary color to bright green for dark mode */
-    --secondary: 88 65% 53%;
+    /* Adjusted secondary color to brighter green for dark mode */
+    --secondary: 88 75% 53%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 10% 15%;
-    --muted-foreground: 45 100% 80%;
+    --muted-foreground: 220 10% 70%;
 
-    /* Updated accent color to vibrant purple for dark mode */
-    --accent: 265 83% 63%;
+    /* Updated accent color to more vibrant purple for dark mode */
+    --accent: 265 90% 63%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
@@ -80,7 +80,7 @@
 
     --border: 220 10% 20%;
     --input: 220 10% 20%;
-    --ring: 14 82% 53%;
+    --ring: 14 90% 53%;
   }
 }
 
@@ -103,10 +103,12 @@
 @layer components {
   .filipino-pattern {
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23E94822' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-color: white;
   }
   
   .hidden-gems-bg {
     background-image: linear-gradient(to right, rgba(233, 72, 34, 0.1), rgba(241, 48, 48, 0.1));
+    background-color: white;
   }
   
   /* ... keep existing code (destination card styles, gradient overlay, section title etc.) */
