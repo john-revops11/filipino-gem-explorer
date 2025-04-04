@@ -1,640 +1,752 @@
-import { auth, database, firestore } from "./firebase";
-import { ref, set, get, push, remove, query, orderByChild, equalTo } from "firebase/database";
-import { 
-  collection, 
-  addDoc, 
-  serverTimestamp, 
-  getDocs, 
-  where, 
-  query as firestoreQuery,
-  doc,
-  getDoc
-} from "firebase/firestore";
-import { toast } from "sonner";
-import { generateItinerary as generateAIItinerary } from "./gemini-api";
 
-export interface Location {
-  id?: string;
+import { auth, firestore, storage } from '@/services/firebase';
+import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
+// Destination type
+export type Destination = {
+  id: string;
   name: string;
+  description: string;
+  location: Location;
+  image: string;
+  rating?: number;
+  category?: string;
+  featured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+// Location type
+export type Location = {
   region: string;
-  province?: string;
-  description?: string;
-  image?: string;
+  province: string;
+  city: string;
   coordinates?: {
     latitude: number;
     longitude: number;
   };
-  tags?: string[];
-}
+};
 
-export interface Food {
-  id?: string;
+// Place type
+export type Place = {
+  id: string;
   name: string;
+  description: string;
+  location: string;
   type: string;
-  description: string;
-  price_range?: string;
-  location_id: string;
-  image?: string;
-  tags?: string[];
-}
-
-export interface Tour {
-  id?: string;
-  name: string;
-  description: string;
-  price_range: string;
-  duration: string;
-  location_id: string;
-  image?: string;
-  includes?: string[];
-  highlights?: string[];
-}
-
-export interface Place {
-  id?: string;
-  name: string;
-  type: "hotel" | "resort" | "tourist_spot" | "restaurant" | "cafe" | "other";
-  description: string;
-  location_id: string;
-  image?: string;
-  address?: string;
-  price_range?: string;
-  contact?: string;
-  website?: string;
+  category: string;
+  image: string;
+  rating?: number;
+  featured?: boolean;
   amenities?: string[];
-  tags?: string[];
-  is_hidden_gem?: boolean;
-  is_local_business?: boolean;
-}
+  contact?: {
+    phone?: string;
+    email?: string;
+    website?: string;
+  };
+  priceRange?: string;
+  createdAt: string;
+  updatedAt?: string;
+};
 
-export interface ItineraryDay {
-  day: string;
-  activities: Array<{
-    time: string;
-    title: string;
-    type: "activity" | "transport" | "food" | "accommodation" | "rest";
-    location?: string;
-    description?: string;
-    cost?: string;
-  }>;
-}
+// Tour type
+export type Tour = {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  duration: string;
+  price: number;
+  image: string;
+  rating?: number;
+  included?: string[];
+  excluded?: string[];
+  featured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
 
-export interface Itinerary {
-  id?: string;
+// Food type
+export type Food = {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  type: string;
+  image: string;
+  price?: number;
+  rating?: number;
+  ingredients?: string[];
+  featured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+// Itinerary type
+export type Itinerary = {
+  id: string;
   name: string;
   description: string;
   days: number;
-  content?: string; // For storing the AI-generated content
-  location: {
-    name: string;
-    region_id?: string;
-    province_id?: string;
-    city_id?: string;
-  };
-  tags?: string[];
-  created_by?: string;
-  is_public?: boolean;
-  created_at?: any;
-  updated_at?: any;
-  duration?: string; // Number of days
-  destination?: string; // Main destination
-  image?: string; // Cover image URL
-  status?: 'planning' | 'upcoming' | 'completed';
-  dateRange?: string;
-}
+  image: string;
+  destinations: string[];
+  activities: any[];
+  featured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
 
+// User type
+export type User = {
+  id: string;
+  displayName: string;
+  email: string;
+  photoURL?: string;
+  isAdmin?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+// Booking type
+export type Booking = {
+  id: string;
+  userId: string;
+  user?: User;
+  destinationId?: string;
+  destination?: Destination;
+  activityId?: string;
+  activity?: any;
+  date: string;
+  totalPeople: number;
+  amount: number;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  paymentMethod?: string;
+  paymentStatus?: 'paid' | 'unpaid';
+  createdAt: string;
+  updatedAt?: string;
+};
+
+// Hidden Gem type
+export type HiddenGem = {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  category: string;
+  image: string;
+  featured?: boolean;
+  accessTips?: string;
+  bestTime?: string;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+// Local Business type
+export type Business = {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  category: string;
+  image: string;
+  featured?: boolean;
+  phone?: string;
+  website?: string;
+  hours?: string;
+  owner?: string;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+// Event type
+export type Event = {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  category: string;
+  date: string;
+  image: string;
+  featured?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+// Convert Firebase document to our data type
+const convertDoc = <T>(doc: any): T => {
+  const data = doc.data();
+  // Convert Firebase timestamps to ISO strings
+  Object.keys(data).forEach((key) => {
+    if (data[key] instanceof Timestamp) {
+      data[key] = data[key].toDate().toISOString();
+    }
+  });
+  return { id: doc.id, ...data } as T;
+};
+
+// Database service methods
 const databaseService = {
-  saveLocation: async (locationData: Location) => {
+  // Destinations
+  getAllDestinations: async (): Promise<Destination[]> => {
     try {
-      const docRef = await addDoc(collection(firestore, 'locations'), {
-        ...locationData,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp()
-      });
-      
-      return docRef.id;
+      const querySnapshot = await getDocs(collection(firestore, 'destinations'));
+      return querySnapshot.docs.map(doc => convertDoc<Destination>(doc));
     } catch (error) {
-      console.error("Error saving location:", error);
-      toast.error("Failed to save location", {
-        description: "There was an error saving the location. Please try again."
-      });
-      throw error;
+      console.error('Error getting destinations:', error);
+      return [];
     }
   },
   
-  getLocations: async () => {
+  getDestination: async (id: string): Promise<Destination | null> => {
     try {
-      const querySnapshot = await getDocs(collection(firestore, 'locations'));
-      const locations: Location[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        locations.push({
-          id: doc.id,
-          ...doc.data() as Location
-        });
-      });
-      
-      return locations;
-    } catch (error) {
-      console.error("Error getting locations:", error);
-      toast.error("Failed to load locations", {
-        description: "There was an error retrieving locations. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  getLocationById: async (locationId: string) => {
-    try {
-      const docRef = doc(firestore, 'locations', locationId);
+      const docRef = doc(firestore, 'destinations', id);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
-        return {
-          id: docSnap.id,
-          ...docSnap.data() as Location
-        };
-      } else {
-        console.log("No location found with ID:", locationId);
-        return null;
+        return convertDoc<Destination>(docSnap);
       }
+      return null;
     } catch (error) {
-      console.error("Error getting location:", error);
-      toast.error("Failed to retrieve location", {
-        description: "There was an error loading the location. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  saveFoodItem: async (foodData: Food) => {
-    try {
-      const docRef = await addDoc(collection(firestore, 'food'), {
-        ...foodData,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp()
-      });
-      
-      return docRef.id;
-    } catch (error) {
-      console.error("Error saving food item:", error);
-      toast.error("Failed to save food item", {
-        description: "There was an error saving the food item. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  getFoodItemsByLocation: async (locationId: string) => {
-    try {
-      const foodQuery = firestoreQuery(
-        collection(firestore, 'food'),
-        where('location_id', '==', locationId)
-      );
-      
-      const querySnapshot = await getDocs(foodQuery);
-      const foodItems: Food[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        foodItems.push({
-          id: doc.id,
-          ...doc.data() as Food
-        });
-      });
-      
-      return foodItems;
-    } catch (error) {
-      console.error("Error getting food items:", error);
-      toast.error("Failed to load food items", {
-        description: "There was an error retrieving food items. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  saveTour: async (tourData: Tour) => {
-    try {
-      const docRef = await addDoc(collection(firestore, 'tours'), {
-        ...tourData,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp()
-      });
-      
-      return docRef.id;
-    } catch (error) {
-      console.error("Error saving tour:", error);
-      toast.error("Failed to save tour", {
-        description: "There was an error saving the tour. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  getToursByLocation: async (locationId: string) => {
-    try {
-      const toursQuery = firestoreQuery(
-        collection(firestore, 'tours'),
-        where('location_id', '==', locationId)
-      );
-      
-      const querySnapshot = await getDocs(toursQuery);
-      const tours: Tour[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        tours.push({
-          id: doc.id,
-          ...doc.data() as Tour
-        });
-      });
-      
-      return tours;
-    } catch (error) {
-      console.error("Error getting tours:", error);
-      toast.error("Failed to load tours", {
-        description: "There was an error retrieving tours. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  savePlace: async (placeData: Place) => {
-    try {
-      const docRef = await addDoc(collection(firestore, 'places'), {
-        ...placeData,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp()
-      });
-      
-      return docRef.id;
-    } catch (error) {
-      console.error("Error saving place:", error);
-      toast.error("Failed to save place", {
-        description: "There was an error saving the place. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  getPlaces: async () => {
-    try {
-      const querySnapshot = await getDocs(collection(firestore, 'places'));
-      const places: Place[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        places.push({
-          id: doc.id,
-          ...doc.data() as Place
-        });
-      });
-      
-      return places;
-    } catch (error) {
-      console.error("Error getting places:", error);
-      toast.error("Failed to load places", {
-        description: "There was an error retrieving places. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  getPlacesByLocation: async (locationId: string) => {
-    try {
-      const placesQuery = firestoreQuery(
-        collection(firestore, 'places'),
-        where('location_id', '==', locationId)
-      );
-      
-      const querySnapshot = await getDocs(placesQuery);
-      const places: Place[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        places.push({
-          id: doc.id,
-          ...doc.data() as Place
-        });
-      });
-      
-      return places;
-    } catch (error) {
-      console.error("Error getting places by location:", error);
-      toast.error("Failed to load places", {
-        description: "There was an error retrieving places. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  getPlacesByType: async (type: string) => {
-    try {
-      const placesQuery = firestoreQuery(
-        collection(firestore, 'places'),
-        where('type', '==', type)
-      );
-      
-      const querySnapshot = await getDocs(placesQuery);
-      const places: Place[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        places.push({
-          id: doc.id,
-          ...doc.data() as Place
-        });
-      });
-      
-      return places;
-    } catch (error) {
-      console.error(`Error getting places by type (${type}):`, error);
-      toast.error("Failed to load places", {
-        description: "There was an error retrieving places. Please try again."
-      });
-      throw error;
-    }
-  },
-  
-  saveItinerary: async (itineraryData: Itinerary) => {
-    console.log("Saving itinerary:", itineraryData);
-    
-    try {
-      // Check if we should use Firestore or Realtime Database
-      // For now we'll support both, but could be configured by a setting later
-      
-      // Firestore approach (currently used by the app)
-      const docRef = await addDoc(collection(firestore, 'itineraries'), {
-        ...itineraryData,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp()
-      });
-      
-      // Realtime Database approach (prepared for future use)
-      const dbRef = ref(database, `itineraries/${docRef.id}`);
-      await set(dbRef, {
-        ...itineraryData,
-        id: docRef.id // Store the ID in the object too
-      });
-
-      return docRef.id;
-    } catch (error) {
-      console.error("Error saving itinerary:", error);
-      toast.error("Failed to save itinerary", {
-        description: "There was an error saving your itinerary. Please try again."
-      });
-      throw error;
-    }
-  },
-
-  getItinerary: async (itineraryId: string) => {
-    try {
-      const docRef = doc(firestore, 'itineraries', itineraryId);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        return {
-          id: docSnap.id,
-          ...docSnap.data() as Itinerary
-        };
-      } else {
-        console.log("No itinerary found with ID:", itineraryId);
-        return null;
-      }
-    } catch (error) {
-      console.error("Error getting itinerary:", error);
-      toast.error("Failed to retrieve itinerary", {
-        description: "There was an error loading the itinerary. Please try again."
-      });
-      throw error;
-    }
-  },
-
-  getUserItineraries: async (userId: string) => {
-    try {
-      if (!userId) {
-        console.log("No user ID provided");
-        return [];
-      }
-
-      // Get from Firestore
-      const itinerariesQuery = firestoreQuery(
-        collection(firestore, 'itineraries'),
-        where('created_by', '==', userId)
-      );
-      
-      const querySnapshot = await getDocs(itinerariesQuery);
-      const itineraries: Itinerary[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        itineraries.push({
-          id: doc.id,
-          ...doc.data() as Itinerary
-        });
-      });
-      
-      return itineraries;
-    } catch (error) {
-      console.error("Error getting user itineraries:", error);
-      toast.error("Failed to load your itineraries", {
-        description: "There was an error retrieving your saved itineraries. Please try again."
-      });
-      throw error;
-    }
-  },
-
-  getPublicItineraries: async () => {
-    try {
-      const itinerariesQuery = firestoreQuery(
-        collection(firestore, 'itineraries'),
-        where('is_public', '==', true)
-      );
-      
-      const querySnapshot = await getDocs(itinerariesQuery);
-      const itineraries: Itinerary[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        itineraries.push({
-          id: doc.id,
-          ...doc.data() as Itinerary
-        });
-      });
-      
-      return itineraries;
-    } catch (error) {
-      console.error("Error getting public itineraries:", error);
-      toast.error("Failed to load itineraries", {
-        description: "There was an error retrieving public itineraries. Please try again."
-      });
-      throw error;
-    }
-  },
-
-  saveGeneratedItinerary: async (destination: string, days: string, content: string, userId: string) => {
-    try {
-      if (!userId) {
-        toast.error("You need to be logged in to save itineraries", {
-          description: "Please sign in or create an account to save this itinerary."
-        });
-        return null;
-      }
-
-      const itineraryData: Itinerary = {
-        name: `${days}-Day Itinerary for ${destination}`,
-        description: `AI-generated ${days}-day travel plan for ${destination}`,
-        days: parseInt(days),
-        location: {
-          name: destination
-        },
-        tags: ["AI-generated"],
-        content: content,
-        created_by: userId,
-        is_public: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        duration: days,
-        destination: destination,
-        image: `/assets/destinations/${destination.toLowerCase().replace(/\s+/g, '-')}.jpg`, // Default image path
-        status: 'planning'
-      };
-
-      return await databaseService.saveItinerary(itineraryData);
-    } catch (error) {
-      console.error("Error saving generated itinerary:", error);
-      toast.error("Failed to save itinerary", {
-        description: "There was an error saving your generated itinerary. Please try again."
-      });
+      console.error('Error getting destination:', error);
       return null;
     }
   },
-
-  generateItinerary: async (destination: string, days: number, preferences: string) => {
+  
+  addDestination: async (destination: Omit<Destination, 'id'>): Promise<string> => {
     try {
-      // Call the AI service to generate the content
-      const itineraryContent = await generateAIItinerary(destination, days, preferences);
-      return itineraryContent;
+      const docRef = await addDoc(collection(firestore, 'destinations'), destination);
+      return docRef.id;
     } catch (error) {
-      console.error(`Error generating AI itinerary for ${destination}:`, error);
-      throw new Error(`Failed to generate AI itinerary: ${error}`);
+      console.error('Error adding destination:', error);
+      throw error;
     }
   },
-
-  generateInitialData: async () => {
+  
+  updateDestination: async (id: string, destination: Partial<Destination>): Promise<void> => {
     try {
-      // Check if data already exists
-      const locationsSnapshot = await getDocs(collection(firestore, 'locations'));
-      if (!locationsSnapshot.empty) {
-        console.log("Initial data already exists, skipping generation");
-        return;
+      const docRef = doc(firestore, 'destinations', id);
+      await updateDoc(docRef, { ...destination, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating destination:', error);
+      throw error;
+    }
+  },
+  
+  deleteDestination: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(firestore, 'destinations', id));
+    } catch (error) {
+      console.error('Error deleting destination:', error);
+      throw error;
+    }
+  },
+  
+  // Places
+  getAllPlaces: async (): Promise<Place[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'places'));
+      return querySnapshot.docs.map(doc => convertDoc<Place>(doc));
+    } catch (error) {
+      console.error('Error getting places:', error);
+      return [];
+    }
+  },
+  
+  getPlace: async (id: string): Promise<Place | null> => {
+    try {
+      const docRef = doc(firestore, 'places', id);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return convertDoc<Place>(docSnap);
       }
+      return null;
+    } catch (error) {
+      console.error('Error getting place:', error);
+      return null;
+    }
+  },
+  
+  addPlace: async (place: Omit<Place, 'id'>): Promise<string> => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'places'), place);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding place:', error);
+      throw error;
+    }
+  },
+  
+  updatePlace: async (id: string, place: Partial<Place>): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'places', id);
+      await updateDoc(docRef, { ...place, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating place:', error);
+      throw error;
+    }
+  },
+  
+  deletePlace: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(firestore, 'places', id));
+    } catch (error) {
+      console.error('Error deleting place:', error);
+      throw error;
+    }
+  },
+  
+  // Tours
+  getAllTours: async (): Promise<Tour[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'tours'));
+      return querySnapshot.docs.map(doc => convertDoc<Tour>(doc));
+    } catch (error) {
+      console.error('Error getting tours:', error);
+      return [];
+    }
+  },
+  
+  addTour: async (tour: Omit<Tour, 'id'>): Promise<string> => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'tours'), tour);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding tour:', error);
+      throw error;
+    }
+  },
+  
+  updateTour: async (id: string, tour: Partial<Tour>): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'tours', id);
+      await updateDoc(docRef, { ...tour, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating tour:', error);
+      throw error;
+    }
+  },
+  
+  deleteTour: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(firestore, 'tours', id));
+    } catch (error) {
+      console.error('Error deleting tour:', error);
+      throw error;
+    }
+  },
+  
+  // Foods
+  getAllFoods: async (): Promise<Food[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'foods'));
+      return querySnapshot.docs.map(doc => convertDoc<Food>(doc));
+    } catch (error) {
+      console.error('Error getting foods:', error);
+      return [];
+    }
+  },
+  
+  addFood: async (food: Omit<Food, 'id'>): Promise<string> => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'foods'), food);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding food:', error);
+      throw error;
+    }
+  },
+  
+  updateFood: async (id: string, food: Partial<Food>): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'foods', id);
+      await updateDoc(docRef, { ...food, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating food:', error);
+      throw error;
+    }
+  },
+  
+  deleteFood: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(firestore, 'foods', id));
+    } catch (error) {
+      console.error('Error deleting food:', error);
+      throw error;
+    }
+  },
+  
+  // Itineraries
+  getAllItineraries: async (): Promise<Itinerary[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'itineraries'));
+      return querySnapshot.docs.map(doc => convertDoc<Itinerary>(doc));
+    } catch (error) {
+      console.error('Error getting itineraries:', error);
+      return [];
+    }
+  },
+  
+  addItinerary: async (itinerary: Omit<Itinerary, 'id'>): Promise<string> => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'itineraries'), itinerary);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding itinerary:', error);
+      throw error;
+    }
+  },
+  
+  updateItinerary: async (id: string, itinerary: Partial<Itinerary>): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'itineraries', id);
+      await updateDoc(docRef, { ...itinerary, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating itinerary:', error);
+      throw error;
+    }
+  },
+  
+  deleteItinerary: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(firestore, 'itineraries', id));
+    } catch (error) {
+      console.error('Error deleting itinerary:', error);
+      throw error;
+    }
+  },
+  
+  // Users
+  getAllUsers: async (): Promise<User[]> => {
+    try {
+      // In a real app, this would typically be done through an admin SDK
+      // For demo purposes, we're fetching from Firestore directly
+      const querySnapshot = await getDocs(collection(firestore, 'users'));
+      return querySnapshot.docs.map(doc => convertDoc<User>(doc));
+    } catch (error) {
+      console.error('Error getting users:', error);
+      return [];
+    }
+  },
+  
+  getUser: async (id: string): Promise<User | null> => {
+    try {
+      const docRef = doc(firestore, 'users', id);
+      const docSnap = await getDoc(docRef);
       
-      // Define regions and initial locations
-      const regions = [
-        { name: "Luzon", locations: ["Manila", "Baguio", "Batangas"] },
-        { name: "Visayas", locations: ["Cebu", "Boracay", "Bohol"] },
-        { name: "Mindanao", locations: ["Davao", "Siargao", "Zamboanga"] }
-      ];
+      if (docSnap.exists()) {
+        return convertDoc<User>(docSnap);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
+  },
+  
+  updateUser: async (id: string, userData: Partial<User>): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'users', id);
+      await updateDoc(docRef, { ...userData, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  },
+  
+  deleteUser: async (id: string): Promise<void> => {
+    try {
+      // In a real app, this would be handled by admin SDK
+      await deleteDoc(doc(firestore, 'users', id));
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  },
+  
+  updateUserRole: async (id: string, isAdmin: boolean): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'users', id);
+      await updateDoc(docRef, { 
+        isAdmin, 
+        updatedAt: new Date().toISOString() 
+      });
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      throw error;
+    }
+  },
+  
+  // Bookings
+  getAllBookings: async (): Promise<Booking[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'bookings'));
+      const bookings = querySnapshot.docs.map(doc => convertDoc<Booking>(doc));
       
-      for (const region of regions) {
-        for (const locationName of region.locations) {
-          // Save location
-          const locationData: Location = {
-            name: locationName,
-            region: region.name,
-            description: `${locationName} is a beautiful destination in the ${region.name} region of the Philippines.`,
-            tags: ["Popular", "Tourist Spot"],
-            image: `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80`,
-          };
-          
-          const locationId = await databaseService.saveLocation(locationData);
-          
-          // Generate sample food for this location
-          const foodItems = [
-            { 
-              name: `${locationName} Special Dish`, 
-              type: "Local Specialty", 
-              description: `A special dish from ${locationName}`,
-              price_range: "₱100-₱300",
-              location_id: locationId,
-              tags: ["Local", "Traditional"]
-            },
-            { 
-              name: `Seafood in ${locationName}`, 
-              type: "Seafood", 
-              description: `Fresh seafood from the waters of ${locationName}`,
-              price_range: "₱200-₱500",
-              location_id: locationId,
-              tags: ["Seafood", "Fresh"]
-            }
-          ];
-          
-          for (const foodItem of foodItems) {
-            await databaseService.saveFoodItem(foodItem);
-          }
-          
-          // Generate sample tours for this location
-          const tours = [
-            { 
-              name: `${locationName} City Tour`, 
-              description: `Explore the beautiful city of ${locationName}`,
-              price_range: "₱500-₱1000",
-              duration: "4 hours",
-              location_id: locationId,
-              highlights: ["Historical sites", "Local cuisine", "Cultural experiences"]
-            },
-            { 
-              name: `${locationName} Adventure Tour`, 
-              description: `Experience thrilling adventures in ${locationName}`,
-              price_range: "₱1000-₱2000",
-              duration: "Full day",
-              location_id: locationId,
-              highlights: ["Nature trails", "Water activities", "Mountain views"]
-            }
-          ];
-          
-          for (const tour of tours) {
-            await databaseService.saveTour(tour);
-          }
-          
-          // Generate a sample AI itinerary for this location
-          try {
-            const daysOptions = ["3", "5", "7"];
-            const randomDaysIndex = Math.floor(Math.random() * daysOptions.length);
-            const days = daysOptions[randomDaysIndex];
-            
-            // Call the AI service to generate the content
-            const itineraryContent = await generateAIItinerary(locationName, parseInt(days), "balanced, cultural experiences");
-            
-            // Create the itinerary object
-            const itineraryData: Itinerary = {
-              name: `${days}-Day ${locationName} Experience`,
-              description: `Discover the best of ${locationName} in ${days} days`,
-              days: parseInt(days),
-              location: {
-                name: locationName
-              },
-              tags: ["AI-generated", "Popular", locationName],
-              content: itineraryContent,
-              created_by: "system",
-              is_public: true,
-              duration: days,
-              destination: locationName,
-              image: `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80`,
-              status: 'planning'
-            };
-            
-            await databaseService.saveItinerary(itineraryData);
-          } catch (error) {
-            console.error(`Error generating itinerary for ${locationName}:`, error);
-          }
+      // Fetch related user and destination data
+      for (const booking of bookings) {
+        if (booking.userId) {
+          booking.user = await databaseService.getUser(booking.userId);
+        }
+        
+        if (booking.destinationId) {
+          booking.destination = await databaseService.getDestination(booking.destinationId);
         }
       }
       
-      toast.success("Initial data generated successfully", {
-        description: "Sample locations, food, tours, and itineraries have been created."
+      return bookings;
+    } catch (error) {
+      console.error('Error getting bookings:', error);
+      return [];
+    }
+  },
+  
+  updateBookingStatus: async (id: string, status: string): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'bookings', id);
+      await updateDoc(docRef, { 
+        status, 
+        updatedAt: new Date().toISOString() 
       });
     } catch (error) {
-      console.error("Error generating initial data:", error);
-      toast.error("Failed to generate initial data", {
-        description: "There was an error creating the sample data. Please try again."
-      });
+      console.error('Error updating booking status:', error);
+      throw error;
     }
-  }
+  },
+  
+  // Hidden Gems
+  getAllHiddenGems: async (): Promise<HiddenGem[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'hiddenGems'));
+      return querySnapshot.docs.map(doc => convertDoc<HiddenGem>(doc));
+    } catch (error) {
+      console.error('Error getting hidden gems:', error);
+      return [];
+    }
+  },
+  
+  addHiddenGem: async (gem: Omit<HiddenGem, 'id'>): Promise<string> => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'hiddenGems'), gem);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding hidden gem:', error);
+      throw error;
+    }
+  },
+  
+  updateHiddenGem: async (id: string, gem: Partial<HiddenGem>): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'hiddenGems', id);
+      await updateDoc(docRef, { ...gem, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating hidden gem:', error);
+      throw error;
+    }
+  },
+  
+  deleteHiddenGem: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(firestore, 'hiddenGems', id));
+    } catch (error) {
+      console.error('Error deleting hidden gem:', error);
+      throw error;
+    }
+  },
+  
+  updateHiddenGemFeaturedStatus: async (id: string, featured: boolean): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'hiddenGems', id);
+      await updateDoc(docRef, { 
+        featured, 
+        updatedAt: new Date().toISOString() 
+      });
+    } catch (error) {
+      console.error('Error updating hidden gem featured status:', error);
+      throw error;
+    }
+  },
+  
+  // Local Businesses
+  getAllBusinesses: async (): Promise<Business[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'businesses'));
+      return querySnapshot.docs.map(doc => convertDoc<Business>(doc));
+    } catch (error) {
+      console.error('Error getting businesses:', error);
+      return [];
+    }
+  },
+  
+  addBusiness: async (business: Omit<Business, 'id'>): Promise<string> => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'businesses'), business);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding business:', error);
+      throw error;
+    }
+  },
+  
+  updateBusiness: async (id: string, business: Partial<Business>): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'businesses', id);
+      await updateDoc(docRef, { ...business, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating business:', error);
+      throw error;
+    }
+  },
+  
+  deleteBusiness: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(firestore, 'businesses', id));
+    } catch (error) {
+      console.error('Error deleting business:', error);
+      throw error;
+    }
+  },
+  
+  updateBusinessFeaturedStatus: async (id: string, featured: boolean): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'businesses', id);
+      await updateDoc(docRef, { 
+        featured, 
+        updatedAt: new Date().toISOString() 
+      });
+    } catch (error) {
+      console.error('Error updating business featured status:', error);
+      throw error;
+    }
+  },
+  
+  // Events
+  getAllEvents: async (): Promise<Event[]> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'events'));
+      return querySnapshot.docs.map(doc => convertDoc<Event>(doc));
+    } catch (error) {
+      console.error('Error getting events:', error);
+      return [];
+    }
+  },
+  
+  addEvent: async (event: Omit<Event, 'id'>): Promise<string> => {
+    try {
+      const docRef = await addDoc(collection(firestore, 'events'), event);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding event:', error);
+      throw error;
+    }
+  },
+  
+  updateEvent: async (id: string, event: Partial<Event>): Promise<void> => {
+    try {
+      const docRef = doc(firestore, 'events', id);
+      await updateDoc(docRef, { ...event, updatedAt: new Date().toISOString() });
+    } catch (error) {
+      console.error('Error updating event:', error);
+      throw error;
+    }
+  },
+  
+  deleteEvent: async (id: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(firestore, 'events', id));
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      throw error;
+    }
+  },
+  
+  // Dashboard stats
+  getUsersCount: async (): Promise<number> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'users'));
+      return querySnapshot.size;
+    } catch (error) {
+      console.error('Error getting users count:', error);
+      return 0;
+    }
+  },
+  
+  getBookingsCount: async (): Promise<number> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'bookings'));
+      return querySnapshot.size;
+    } catch (error) {
+      console.error('Error getting bookings count:', error);
+      return 0;
+    }
+  },
+  
+  getDestinationsCount: async (): Promise<number> => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'destinations'));
+      return querySnapshot.size;
+    } catch (error) {
+      console.error('Error getting destinations count:', error);
+      return 0;
+    }
+  },
+  
+  getRecentUsers: async (limit: number): Promise<User[]> => {
+    try {
+      const q = query(
+        collection(firestore, 'users'),
+        orderBy('createdAt', 'desc'),
+        limit(limit)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => convertDoc<User>(doc));
+    } catch (error) {
+      console.error('Error getting recent users:', error);
+      return [];
+    }
+  },
+  
+  getRecentBookings: async (limit: number): Promise<Booking[]> => {
+    try {
+      const q = query(
+        collection(firestore, 'bookings'),
+        orderBy('createdAt', 'desc'),
+        limit(limit)
+      );
+      const querySnapshot = await getDocs(q);
+      const bookings = querySnapshot.docs.map(doc => convertDoc<Booking>(doc));
+      
+      // Fetch related user and destination data
+      for (const booking of bookings) {
+        if (booking.userId) {
+          booking.user = await databaseService.getUser(booking.userId);
+        }
+        
+        if (booking.destinationId) {
+          booking.destination = await databaseService.getDestination(booking.destinationId);
+        }
+      }
+      
+      return bookings;
+    } catch (error) {
+      console.error('Error getting recent bookings:', error);
+      return [];
+    }
+  },
+  
+  // File upload
+  uploadImage: async (file: File, path: string): Promise<string> => {
+    try {
+      const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
+      const uploadResult = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(uploadResult.ref);
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  },
 };
 
 export default databaseService;
