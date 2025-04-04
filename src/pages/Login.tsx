@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +22,9 @@ export default function Login() {
   const [retryCount, setRetryCount] = useState(0);
   const [firebaseReady, setFirebaseReady] = useState(true);
   const isMobile = useIsMobile();
+  
+  // Get the redirect path from location state
+  const from = location.state?.from || "/";
 
   // Check if Firebase is ready on initial load and when retryCount changes
   useEffect(() => {
@@ -52,7 +56,8 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
       toast.success("Login successful");
-      navigate("/");
+      // Redirect to the page they were trying to access
+      navigate(from);
     } catch (error: any) {
       console.error("Login error:", error);
       

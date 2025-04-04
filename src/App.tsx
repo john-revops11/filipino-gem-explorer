@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -78,14 +79,17 @@ const App = () => {
                 </>
               ) : (
                 <>
-                  <Route path="/" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Index />} />
-                  <Route path="/explore" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Explore />} />
-                  <Route path="/destination/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <DestinationDetail />} />
-                  <Route path="/itineraries" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Itineraries />} />
-                  <Route path="/itinerary/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <DestinationDetail />} />
-                  <Route path="/bookings" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Bookings />} />
-                  <Route path="/booking/:id" element={!isLoggedIn ? <Navigate to="/login" replace /> : <BookingDetail />} />
-                  <Route path="/profile" element={!isLoggedIn ? <Navigate to="/login" replace /> : <Profile />} />
+                  {/* Public routes - accessible to all */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/explore" element={<Explore />} />
+                  <Route path="/destination/:id" element={<DestinationDetail />} />
+                  <Route path="/itineraries" element={<Itineraries />} />
+                  <Route path="/itinerary/:id" element={<DestinationDetail />} />
+                  
+                  {/* Login-protected routes */}
+                  <Route path="/bookings" element={isLoggedIn ? <Bookings /> : <Navigate to="/login" state={{ from: "/bookings" }} />} />
+                  <Route path="/booking/:id" element={isLoggedIn ? <BookingDetail /> : <Navigate to="/login" state={{ from: window.location.pathname }} />} />
+                  <Route path="/profile" element={isLoggedIn ? <Profile /> : <Navigate to="/login" state={{ from: "/profile" }} />} />
                   <Route path="/admin" element={<AdminDashboard />} />
                   
                   {/* Authentication routes */}
