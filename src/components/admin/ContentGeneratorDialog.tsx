@@ -162,7 +162,7 @@ export function ContentGeneratorDialog() {
     await databaseService.addItinerary({
       title: `${days}-Day ${location} Itinerary`,
       days: parseInt(days),
-      location: location,
+      location: { name: location },
       content: itineraryData,
       travelStyle: travelStyle,
       createdAt: new Date().toISOString()
