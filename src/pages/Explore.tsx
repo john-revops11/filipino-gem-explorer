@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -25,7 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import EnhancedSearch from "@/components/ai/EnhancedSearch";
-import ItineraryOptimizer from "@/components/ai/ItineraryOptimizer";
+import EnhancedItineraryOptimizer from "@/components/ai/EnhancedItineraryOptimizer";
 
 interface Destination {
   id: string;
@@ -439,7 +440,7 @@ export default function Explore() {
           </div>
         ) : (
           <div className="p-4 bg-white rounded-lg border">
-            <ItineraryOptimizer />
+            <EnhancedItineraryOptimizer />
           </div>
         )}
       </div>
