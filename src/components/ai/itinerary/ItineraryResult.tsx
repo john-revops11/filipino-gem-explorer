@@ -60,7 +60,7 @@ export function ItineraryResult({
         },
         content: editedContent || itineraryContent,
         tags: [],
-        created_by: auth.currentUser.uid,
+        userId_created: auth.currentUser.uid, // Using userId_created instead of created_by
         is_public: true,
         created_at: currentTime,
         updated_at: currentTime,

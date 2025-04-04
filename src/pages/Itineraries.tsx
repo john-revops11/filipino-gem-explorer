@@ -92,7 +92,7 @@ export default function Itineraries() {
       
       const mainDestination = selectedDestinations[0];
       
-      const content = await databaseService.generateItinerary(mainDestination, diffDays, newItinerary.notes || "balanced itinerary");
+      const content = await databaseService.generateItinerary(mainDestination);
       
       const currentTime = new Date().toISOString();
       
@@ -106,7 +106,7 @@ export default function Itineraries() {
         },
         tags: ["Custom", ...selectedDestinations],
         content: content,
-        created_by: "current-user",
+        userId_created: "current-user",
         is_public: false,
         created_at: currentTime,
         updated_at: currentTime,

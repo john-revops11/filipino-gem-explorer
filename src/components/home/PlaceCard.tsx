@@ -7,7 +7,7 @@ import { Place } from "@/services/database-service";
 type PlaceCardProps = {
   id: string;
   name: string;
-  type: Place["type"];
+  type?: string; // Made optional to match the updated Place type
   location: string;
   image: string;
   tags?: string[];
@@ -38,6 +38,8 @@ export function PlaceCard({
   };
 
   const getIcon = () => {
+    if (!type) return <Building className="h-4 w-4 text-white" />;
+    
     switch (type) {
       case "hotel":
         return <Hotel className="h-4 w-4 text-white" />;
@@ -60,10 +62,12 @@ export function PlaceCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
       
       <div className="absolute top-2 left-2 flex flex-col gap-1">
-        <Badge className="bg-filipino-teal/70 text-white flex items-center gap-1 uppercase text-xs">
-          {getIcon()}
-          {type.replace("_", " ")}
-        </Badge>
+        {type && (
+          <Badge className="bg-filipino-teal/70 text-white flex items-center gap-1 uppercase text-xs">
+            {getIcon()}
+            {type.replace("_", " ")}
+          </Badge>
+        )}
         
         {is_hidden_gem && (
           <Badge className="bg-filipino-vibrantGreen/70 text-white flex items-center gap-1 uppercase text-xs">

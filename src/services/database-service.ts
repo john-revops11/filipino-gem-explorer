@@ -51,12 +51,12 @@ export type Destination = {
 
 export type Itinerary = {
   id?: string;
-  destinationId: string;
-  userId: string;
+  destinationId?: string;
+  userId?: string;
   days: number;
-  title: string;
-  description: string;
-  createdAt: any;
+  title?: string;
+  description?: string;
+  createdAt?: any;
   // Additional properties needed by components
   name?: string;
   destinations?: string[];
@@ -69,6 +69,7 @@ export type Itinerary = {
   dateRange?: string;
   created_at?: string;
   updated_at?: string;
+  userId_created?: string; // Using this instead of created_by to match our type
 };
 
 export type Booking = {
@@ -178,8 +179,19 @@ export type Place = {
   name: string;
   description: string;
   location: string;
-  image: string;
-  category: string;
+  category?: string;
+  image?: string;
+  // Adding missing properties needed by AdminPlaces.tsx
+  type?: string;
+  location_id?: string;
+  tags?: string[];
+  amenities?: string[];
+  is_hidden_gem?: boolean;
+  is_local_business?: boolean;
+  address?: string;
+  price_range?: string;
+  contact?: string;
+  website?: string;
 };
 
 export type Tour = {
@@ -190,6 +202,11 @@ export type Tour = {
   duration: string;
   price: number;
   image: string;
+  // Adding missing properties needed by AdminTours.tsx
+  location_id?: string;
+  price_range?: string;
+  highlights?: string[];
+  includes?: string[];
 };
 
 // Firestore Operations
@@ -246,7 +263,7 @@ const queryDocuments = async (
   }));
 };
 
-const addDocument = async (collectionName: string, data: DocumentData) => {
+const addDocument = async (collectionName: string, data: any) => {
   // Create a plain JavaScript object to store the data
   const plainData: Record<string, any> = {};
   
@@ -268,7 +285,7 @@ const addDocument = async (collectionName: string, data: DocumentData) => {
   return docRef.id;
 };
 
-const updateDocument = async (collectionName: string, docId: string, data: DocumentData) => {
+const updateDocument = async (collectionName: string, docId: string, data: any) => {
   // Create a plain JavaScript object to store the data
   const plainData: Record<string, any> = {};
   
@@ -563,12 +580,17 @@ const getAllItineraries = async () => {
   return await getCollection(COLLECTIONS.ITINERARIES) as Itinerary[];
 };
 
-const generateItinerary = async (data: any) => {
+const generateItinerary = async (destination: string) => {
   // Simplified implementation for mock data
-  return await addDocument(COLLECTIONS.ITINERARIES, {
-    ...data,
+  const mockItinerary = {
+    name: `Trip to ${destination}`,
+    description: `Generated itinerary for ${destination}`,
+    days: 3,
+    content: `Day 1: Explore ${destination}\nDay 2: Visit local attractions\nDay 3: Relax and enjoy`,
     createdAt: new Date().toISOString()
-  });
+  };
+  
+  return mockItinerary.content;
 };
 
 const getUserItineraries = async (userId: string) => {
