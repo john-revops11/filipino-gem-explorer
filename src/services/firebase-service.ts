@@ -89,7 +89,7 @@ export const firestoreService = {
   // Add a new document
   addDocument: async (collectionName: string, data: DocumentData) => {
     const docRef = await addDoc(collection(firestore, collectionName), {
-      ...data,
+      ...(data as object),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
@@ -102,7 +102,7 @@ export const firestoreService = {
     const docRef = doc(firestore, collectionName, docId);
     
     await updateDoc(docRef, {
-      ...data,
+      ...(data as object),
       updatedAt: serverTimestamp()
     });
     
@@ -145,7 +145,7 @@ export const realtimeDbService = {
     const newItemRef = push(listRef);
     
     await set(newItemRef, {
-      ...data,
+      ...(data as object),
       timestamp: Date.now()
     });
     
