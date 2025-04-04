@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,13 +46,11 @@ export function AdminDestinations() {
   const [tagInput, setTagInput] = useState("");
   const queryClient = useQueryClient();
 
-  // Fetch all locations
   const { data: locations = [], isLoading } = useQuery({
     queryKey: ["locations"],
     queryFn: databaseService.getLocations,
   });
 
-  // Create location mutation
   const createLocationMutation = useMutation({
     mutationFn: databaseService.saveLocation,
     onSuccess: () => {
@@ -83,10 +80,8 @@ export function AdminDestinations() {
         location: newLocation.name || undefined,
       });
       
-      // Parse the generated content and extract useful information
       const generatedDescription = response.split("\n\n")[1] || response;
       
-      // Update the form with generated content
       setNewLocation({
         ...newLocation,
         description: generatedDescription,
@@ -125,7 +120,6 @@ export function AdminDestinations() {
       return;
     }
 
-    // If no image is provided, use a placeholder
     if (!newLocation.image) {
       setNewLocation({
         ...newLocation,

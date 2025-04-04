@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,17 +49,14 @@ export function AdminTours() {
   const [includeInput, setIncludeInput] = useState("");
   const queryClient = useQueryClient();
 
-  // Fetch all locations
   const { data: locations = [] } = useQuery({
     queryKey: ["locations"],
     queryFn: databaseService.getLocations,
   });
 
-  // Fetch all tours
   const { data: tours = [], isLoading } = useQuery({
     queryKey: ["tours"],
     queryFn: async () => {
-      // Since we don't have a getAll tours method, we'll fetch per location and combine
       const allTours: Tour[] = [];
       for (const location of locations) {
         if (location.id) {
@@ -73,7 +69,6 @@ export function AdminTours() {
     enabled: locations.length > 0,
   });
 
-  // Create tour mutation
   const createTourMutation = useMutation({
     mutationFn: databaseService.saveTour,
     onSuccess: () => {
@@ -114,14 +109,12 @@ export function AdminTours() {
       
       const response = await answerTravelQuestion(prompt);
       
-      // Parse the generated content
       const lines = response.split('\n');
       let tourName = "";
       let description = "";
       let highlights: string[] = [];
       let includes: string[] = [];
       
-      // Simple parsing logic - can be improved
       let currentSection = "";
       for (const line of lines) {
         if (line.match(/tour name|package name|title/i) && !tourName) {
@@ -143,10 +136,8 @@ export function AdminTours() {
         }
       }
       
-      // If no clear name was found, use a default
       if (!tourName) tourName = `Explore ${location.name}`;
       
-      // Update the form with generated content
       setNewTour({
         ...newTour,
         name: tourName,
@@ -209,7 +200,6 @@ export function AdminTours() {
     createTourMutation.mutate(newTour as Tour);
   };
 
-  // Find location name by ID
   const getLocationName = (locationId: string): string => {
     const location = locations.find((loc) => loc.id === locationId);
     return location ? location.name : "Unknown Location";
