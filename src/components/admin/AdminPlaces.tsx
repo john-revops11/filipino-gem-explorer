@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -33,7 +34,7 @@ import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import databaseService, { Location, Place } from "@/services/database-service";
 import { PlaceCard } from "@/components/home/PlaceCard";
-import { Building, Hotel, MapPin, Plus, Edit, Trash2, Store, Gem, Coffee } from "lucide-react";
+import { Building, Hotel, MapPin, Plus, Edit, Trash2, Store, Gem, Coffee, Utensils } from "lucide-react";
 
 // Place category definitions
 const PLACE_CATEGORIES = {
