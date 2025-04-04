@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -49,12 +48,12 @@ export function AdminOverview() {
 
   const { data: recentUsers = [], isLoading: isLoadingRecentUsers } = useQuery({
     queryKey: ['recentUsers'],
-    queryFn: () => databaseService.getRecentUsers(5),
+    queryFn: () => databaseService.getRecentUsers(),
   });
 
   const { data: recentBookings = [], isLoading: isLoadingRecentBookings } = useQuery({
     queryKey: ['recentBookings'],
-    queryFn: () => databaseService.getRecentBookings(5),
+    queryFn: () => databaseService.getRecentBookings(),
   });
 
   return (

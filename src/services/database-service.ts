@@ -4,7 +4,6 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, Auth, User } fro
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, addDoc, deleteDoc, updateDoc, Firestore, orderBy, limit, DocumentData } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from "firebase/storage";
 import { v4 as uuidv4 } from 'uuid';
-import { firestoreService, realtimeDbService } from "./firebase-service";
 import { app, auth, firestore, storage, database } from "./firebase";
 
 // Define data types
@@ -154,6 +153,28 @@ export interface Event {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// Function to sign in with Google
+const signInWithGoogle = async (): Promise<User> => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in with Google:", error);
+    throw error;
+  }
+};
+
+// Function to sign out
+const signOutUser = async (): Promise<void> => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Error signing out:", error);
+    throw error;
+  }
+};
 
 // Function to get all users
 const getAllUsers = async () => {

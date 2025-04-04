@@ -439,7 +439,11 @@ export default function Explore() {
           </div>
         ) : (
           <div className="p-4 bg-white rounded-lg border">
-            <EnhancedItineraryOptimizer />
+            <EnhancedItineraryOptimizer 
+              destination="Philippines" 
+              days={5} 
+              initialItinerary={[]}
+            />
           </div>
         )}
       </div>
