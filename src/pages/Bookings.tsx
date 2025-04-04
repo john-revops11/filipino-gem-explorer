@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -12,8 +11,22 @@ import { Progress } from "@/components/ui/progress";
 import { BookingCard } from "@/components/booking/BookingCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 
-// Mock data for bookings
-const mockBookings = [
+type BookingType = {
+  id: string;
+  type: "accommodation" | "activity" | "transport";
+  title: string;
+  location: string;
+  dateRange: string;
+  status: "confirmed" | "pending";
+  image: string;
+  price: string;
+  paymentStatus: "full" | "partial";
+  paymentProgress?: number;
+  confirmationCode: string;
+  bookingDate: string;
+};
+
+const mockBookings: BookingType[] = [
   {
     id: "1",
     type: "accommodation",
@@ -57,7 +70,7 @@ const mockBookings = [
 ];
 
 export default function Bookings() {
-  const [bookings, setBookings] = useState(mockBookings);
+  const [bookings, setBookings] = useState<BookingType[]>(mockBookings);
 
   if (bookings.length === 0) {
     return (
