@@ -88,14 +88,22 @@ export const firestoreService = {
   
   // Add a new document
   addDocument: async (collectionName: string, data: DocumentData) => {
-    // Create an empty plain object to hold our data
+    // Convert the DocumentData to a plain JavaScript object to ensure it's safe to spread
     const plainData: Record<string, any> = {};
     
-    if (data && typeof data === 'object') {
-      // Use a more direct approach to copy properties
-      Object.keys(data as any).forEach(key => {
-        plainData[key] = (data as any)[key];
-      });
+    if (data) {
+      // Cast to any to work with it as a plain object
+      const dataAsObj = data as any;
+      
+      // Only process if it's actually an object
+      if (typeof dataAsObj === 'object' && dataAsObj !== null) {
+        // Copy all properties manually
+        for (const key in dataAsObj) {
+          if (Object.prototype.hasOwnProperty.call(dataAsObj, key)) {
+            plainData[key] = dataAsObj[key];
+          }
+        }
+      }
     }
     
     // Add the document with plain object and timestamps
@@ -110,14 +118,22 @@ export const firestoreService = {
   
   // Update an existing document
   updateDocument: async (collectionName: string, docId: string, data: DocumentData) => {
-    // Create an empty plain object to hold our data
+    // Convert the DocumentData to a plain JavaScript object to ensure it's safe to spread
     const plainData: Record<string, any> = {};
     
-    if (data && typeof data === 'object') {
-      // Use a more direct approach to copy properties
-      Object.keys(data as any).forEach(key => {
-        plainData[key] = (data as any)[key];
-      });
+    if (data) {
+      // Cast to any to work with it as a plain object
+      const dataAsObj = data as any;
+      
+      // Only process if it's actually an object
+      if (typeof dataAsObj === 'object' && dataAsObj !== null) {
+        // Copy all properties manually
+        for (const key in dataAsObj) {
+          if (Object.prototype.hasOwnProperty.call(dataAsObj, key)) {
+            plainData[key] = dataAsObj[key];
+          }
+        }
+      }
     }
     
     const docRef = doc(firestore, collectionName, docId);
@@ -162,14 +178,19 @@ export const realtimeDbService = {
   
   // Push new data to a list
   pushData: async (path: string, data: any) => {
-    // Create an empty plain object to hold our data
+    // Convert to a plain JavaScript object to ensure it's safe to spread
     const plainData: Record<string, any> = {};
     
-    if (data && typeof data === 'object') {
-      // Use a more direct approach to copy properties
-      Object.keys(data as any).forEach(key => {
-        plainData[key] = (data as any)[key];
-      });
+    if (data) {
+      // Only process if it's actually an object
+      if (typeof data === 'object' && data !== null) {
+        // Copy all properties manually
+        for (const key in data) {
+          if (Object.prototype.hasOwnProperty.call(data, key)) {
+            plainData[key] = data[key];
+          }
+        }
+      }
     }
     
     const listRef = ref(database, path);
