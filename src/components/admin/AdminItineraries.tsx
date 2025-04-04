@@ -113,8 +113,7 @@ export const AdminItineraries = () => {
         tags: tags,
         is_public: isPublic,
         updated_at: currentTime,
-        createdAt: createdAt ? createdAt.toISOString() : currentTime,
-        updated_at: currentTime
+        createdAt: createdAt ? createdAt.toISOString() : currentTime
       };
 
       await databaseService.updateItinerary(selectedItinerary.id!, updatedItineraryData);
