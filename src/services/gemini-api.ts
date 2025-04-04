@@ -48,7 +48,7 @@ export async function generateTravelRecommendations(preferences: {
     Provide three specific destinations with a brief description, key attractions, best time to visit, and estimated costs.`;
 
     // Get the model and start the generation process
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -82,7 +82,7 @@ export async function generateItinerary(destination: string, days: number, prefe
     - Estimated costs
     - Travel tips`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -112,7 +112,7 @@ export async function answerTravelQuestion(question: string): Promise<any> {
     
     Provide a helpful, informative answer based on local knowledge and travel expertise.`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
