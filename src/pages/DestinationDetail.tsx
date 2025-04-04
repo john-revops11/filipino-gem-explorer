@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -19,7 +18,10 @@ import {
   Sunrise,
   Cloud,
   Utensils,
-  MessageSquare
+  MessageSquare,
+  ArrowLeft,
+  Calendar,
+  X
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -102,7 +104,7 @@ const getRegionalData = (id: string) => {
           id: "sugba-lagoon",
           name: "Sugba Lagoon",
           description: "A stunning emerald-green lagoon surrounded by limestone cliffs, perfect for paddle boarding and cliff jumping.",
-          image: "https://images.unsplash.com/photo-1518509562904-e7ef99cdbc75?auto=format&fit=crop&w=800&q=80"
+          image: "https://images.unsplash.com/photo-1518877593221-1f28583780b4?auto=format&fit=crop&w=800&q=80"
         },
         {
           id: "pacifico-beach",

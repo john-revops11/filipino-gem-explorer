@@ -27,7 +27,6 @@ import { motion } from "framer-motion";
 import EnhancedSearch from "@/components/ai/EnhancedSearch";
 import ItineraryOptimizer from "@/components/ai/ItineraryOptimizer";
 
-// Define interface for destination
 interface Destination {
   id: string;
   name: string;
@@ -39,7 +38,6 @@ interface Destination {
   priceRange?: string;
 }
 
-// Mock data for destinations
 const destinations: Destination[] = [
   {
     id: "siargao",
@@ -123,7 +121,6 @@ const destinations: Destination[] = [
   },
 ];
 
-// Filter categories
 const filterCategories = [
   {
     name: "Activities",
@@ -151,7 +148,6 @@ export default function Explore() {
   const [filteredDestinations, setFilteredDestinations] = useState<Destination[]>(destinations);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   
-  // Check URL for category filter on page load
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const categoryParam = params.get('category');
@@ -171,11 +167,9 @@ export default function Explore() {
     }
   }, []);
   
-  // Apply filters when they change
   useEffect(() => {
     let results = destinations;
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       results = results.filter(
@@ -186,18 +180,14 @@ export default function Explore() {
       );
     }
     
-    // Filter by tab
     if (activeTab === "popular") {
       results = results.filter(dest => !dest.isHiddenGem);
     } else if (activeTab === "hidden-gems") {
       results = results.filter(dest => dest.isHiddenGem);
     } else if (activeTab === "nearby") {
-      // This would use geolocation in a real app
-      // For now just show any 3 destinations as "nearby"
       results = results.slice(0, 3);
     }
     
-    // Apply additional filters
     Object.entries(filters).forEach(([category, selectedOptions]) => {
       if (selectedOptions.length > 0) {
         if (category === "Activities") {
@@ -360,7 +350,6 @@ export default function Explore() {
           </Dialog>
         </div>
         
-        {/* Active filters display */}
         {getActiveFilterCount() > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {Object.entries(filters).map(([category, options]) => 
