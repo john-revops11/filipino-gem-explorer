@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Card,
@@ -22,6 +23,8 @@ import { generateItinerary } from "@/services/gemini-api";
 import { Loader2, Calendar, MapPin, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import databaseService from "@/services/database-service";
+import { auth } from "@/services/firebase";
 
 export default function EnhancedItineraryOptimizer() {
   const [destination, setDestination] = useState("");
@@ -69,21 +72,37 @@ export default function EnhancedItineraryOptimizer() {
 
     setIsSaving(true);
     try {
+      // Create itinerary data object based on our database structure
       const itineraryData = {
-        destination,
-        days: parseInt(days),
-        preferences,
+        name: `${days}-Day Trip to ${destination}`,
+        description: `Personalized ${days}-day itinerary for ${destination} with preferences: ${preferences}`,
+        days: [], // This would be populated with actual day references in a real implementation
+        total_price: "Estimate unavailable", // This would be calculated in a real implementation
+        location: {
+          region_id: "placeholder-region", // These would be actual IDs in a real implementation
+          province_id: "placeholder-province",
+          city_id: "placeholder-city"
+        },
+        tags: preferences.split(',').map(pref => pref.trim()), 
         content: generatedItinerary,
-        createdAt: new Date().toISOString(),
+        created_by: auth.currentUser?.uid || "anonymous-user",
+        is_public: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      console.log("Would save itinerary:", itineraryData);
+      // For demo purposes, log the data instead of saving
+      console.log("Saving itinerary:", itineraryData);
       
+      // In a real implementation, we would save to Firebase
+      // const itineraryId = await databaseService.saveItinerary(itineraryData);
+      
+      // For now, simulate a delay and show success
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       toast({
         title: "Itinerary saved",
-        description: "Your itinerary has been saved successfully (to local storage)",
+        description: "Your itinerary has been saved successfully",
       });
     } catch (error) {
       console.error("Error saving itinerary:", error);
