@@ -23,27 +23,24 @@ export function EnhancedItineraryOptimizer({
   const [currentDestination, setCurrentDestination] = useState(destination);
   const [currentDays, setCurrentDays] = useState(days);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPreferences, setCurrentPreferences] = useState(initialItinerary);
 
-  const handleGenerateItinerary = (destination: string, days: number, preferences: string) => {
+  const handleGenerateItinerary = () => {
     if (!user) {
       setShowAuthPrompt(true);
       return;
     }
-    
-    // Update current state
-    setCurrentDestination(destination);
-    setCurrentDays(days.toString());
     
     // Normal itinerary generation logic...
     setIsGenerating(true);
     // Simulate API call
     setTimeout(() => {
       const fakeItinerary = `
-## ${days}-Day Itinerary for ${destination}
+## ${currentDays}-Day Itinerary for ${currentDestination}
 
 ### Day 1
 - Morning: Breakfast at local café
-- Afternoon: City tour of ${destination}
+- Afternoon: City tour of ${currentDestination}
 - Evening: Dinner at beachfront restaurant
 
 ### Day 2
@@ -51,7 +48,7 @@ export function EnhancedItineraryOptimizer({
 - Afternoon: Swimming and relaxation
 - Evening: Cultural show
 
-${preferences ? `\nTailored for preferences: ${preferences}` : ''}
+${currentPreferences ? `\nTailored for preferences: ${currentPreferences}` : ''}
       `;
       setGeneratedItinerary(fakeItinerary);
       setIsGenerating(false);
@@ -66,13 +63,29 @@ ${preferences ? `\nTailored for preferences: ${preferences}` : ''}
     }, 1000);
   };
 
+  // Handle form input changes
+  const handleDestinationChange = (newDestination: string) => {
+    setCurrentDestination(newDestination);
+  };
+
+  const handleDaysChange = (newDays: string) => {
+    setCurrentDays(newDays);
+  };
+
+  const handlePreferencesChange = (newPreferences: string) => {
+    setCurrentPreferences(newPreferences);
+  };
+
   return (
     <div className="w-full">
       <ItineraryForm
+        destination={currentDestination}
+        setDestination={handleDestinationChange}
+        days={currentDays}
+        setDays={handleDaysChange}
+        preferences={currentPreferences}
+        setPreferences={handlePreferencesChange}
         onGenerate={handleGenerateItinerary}
-        initialDestination={destination}
-        initialDays={parseInt(days) || 5}
-        initialPreferences={initialItinerary}
         isGenerating={isGenerating}
       />
       
