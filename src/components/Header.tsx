@@ -24,8 +24,11 @@ export function Header({ showSearch = true, transparent = false, title }: Header
           <h1 className="text-xl font-bold">{title}</h1>
         ) : (
           <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-filipino-terracotta">Local</span>
-            <span className="text-xl font-bold">Stopover</span>
+            <img 
+              src="/lovable-uploads/0cc96d38-423d-462c-a3e7-8f0e3d4de6f3.png" 
+              alt="Local Stopover Logo" 
+              className="h-8" 
+            />
           </Link>
         )}
         

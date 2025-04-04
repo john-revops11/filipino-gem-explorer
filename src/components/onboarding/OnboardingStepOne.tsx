@@ -11,7 +11,7 @@ export default function OnboardingStepOne() {
       >
         <div className="w-40 h-40 mb-8 mx-auto">
           <img 
-            src="/placeholder.svg" 
+            src="/lovable-uploads/0cc96d38-423d-462c-a3e7-8f0e3d4de6f3.png" 
             alt="Local Stopover Logo"
             className="w-full h-full object-contain"
           />
