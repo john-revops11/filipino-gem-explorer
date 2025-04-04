@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/services/firebase";
-import { EyeIcon, EyeOffIcon, UserCircle } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,9 +37,22 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-filipino-cream to-filipino-beige p-4">
-      <div className="w-full max-w-md">
-        <Card className="border-none shadow-lg">
+    <div className={`flex min-h-screen flex-col items-center justify-center p-4 ${!isMobile ? "bg-gradient-to-b from-filipino-cream to-filipino-beige" : ""}`}>
+      {isMobile && (
+        <div className="absolute inset-0 z-0">
+          {/* Mobile background image */}
+          <img 
+            src="/lovable-uploads/18ecf041-866a-43f4-82c2-848f3bd674f5.png" 
+            alt="Filipino landscape" 
+            className="h-full w-full object-cover"
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-filipino-forest/50 via-filipino-forest/30 to-filipino-forest/60"></div>
+        </div>
+      )}
+      
+      <div className="w-full max-w-md relative z-10">
+        <Card className="border-none shadow-lg backdrop-blur-sm bg-white/90">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <img 
@@ -129,7 +144,7 @@ export default function Login() {
         <div className="mt-4 text-center">
           <Button 
             variant="link" 
-            className="text-xs text-gray-600"
+            className={`text-xs ${isMobile ? "text-white" : "text-gray-600"}`}
             onClick={() => navigate("/admin/login")}
           >
             Admin login
