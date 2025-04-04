@@ -11,7 +11,7 @@ export function LocalBusinessHighlight() {
             alt="Local Business"
             className="w-full h-full object-cover"
           />
-          <div className="absolute top-2 right-2 bg-filipino-forest text-white px-2 py-1 rounded-md text-xs font-medium">
+          <div className="absolute top-2 right-2 bg-filipino-maroon text-white px-2 py-1 rounded-md text-xs font-medium">
             Local Business
           </div>
         </div>
@@ -24,7 +24,7 @@ export function LocalBusinessHighlight() {
             Experience authentic Ivatan hospitality and culture in this family-owned homestay with traditional stone house architecture.
           </p>
           
-          <Button className="w-full bg-filipino-goldenrod hover:bg-filipino-goldenrod/90 text-white">
+          <Button className="w-full bg-filipino-maroon hover:bg-filipino-maroon/90 text-white">
             Learn More
           </Button>
         </div>

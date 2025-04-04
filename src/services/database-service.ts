@@ -1,3 +1,4 @@
+
 import { 
   collection, 
   doc, 
@@ -27,12 +28,6 @@ export const COLLECTIONS = {
   CONVERSATIONS: 'aiConversations',
   LOCATIONS: 'locations',
   FOOD_ITEMS: 'food_items'
-};
-
-// Fix the error "Type 'Number' has no call signatures"
-// by replacing Number() with Math.floor()
-const getRandomId = () => {
-  return Math.floor(Math.random() * 1000000).toString();
 };
 
 // Define data types

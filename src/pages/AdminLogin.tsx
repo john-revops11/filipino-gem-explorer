@@ -40,7 +40,7 @@ export default function AdminLogin() {
         <Card className="border-none shadow-lg">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
-              <Shield className="h-16 w-16 text-filipino-terracotta" />
+              <Shield className="h-16 w-16 text-filipino-maroon" />
             </div>
             <CardTitle className="text-2xl font-bold">Admin Portal</CardTitle>
             <CardDescription>
@@ -93,7 +93,7 @@ export default function AdminLogin() {
             <CardFooter className="flex flex-col">
               <Button 
                 type="submit" 
-                className="w-full"
+                className="w-full bg-filipino-maroon hover:bg-filipino-maroon/90 text-white"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign in as Admin"}
@@ -101,7 +101,7 @@ export default function AdminLogin() {
               <div className="mt-4 text-center text-sm">
                 <Button 
                   variant="link" 
-                  className="px-0"
+                  className="px-0 text-filipino-maroon hover:text-filipino-maroon/80"
                   onClick={() => navigate("/login")}
                   type="button"
                 >

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 
 type VideoBackgroundProps = {
   children: React.ReactNode;
@@ -8,7 +8,7 @@ type VideoBackgroundProps = {
 const VideoBackground = ({ children }: VideoBackgroundProps) => {
   return (
     <div className="relative h-full w-full overflow-hidden">
-      {/* Canva video background */}
+      {/* Video background */}
       <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
         <video
           autoPlay
@@ -17,7 +17,6 @@ const VideoBackground = ({ children }: VideoBackgroundProps) => {
           playsInline
           className="w-full h-full object-cover"
         >
-          <source src="https://www.canva.com/design/DAGjsVODcWw/9YdM71yoogvZ8q1HYFoYWg/watch?utm_content=DAGjsVODcWw&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h8175440141" type="video/mp4" />
           <source src="/lovable-uploads/philippines-beach.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
