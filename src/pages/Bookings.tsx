@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
@@ -141,7 +142,9 @@ export default function Bookings() {
           
           <TabsContent value="all" className="mt-4 space-y-4 animate-fade-in">
             {bookings.map((booking) => (
-              <BookingCard key={booking.id} booking={booking} />
+              <Link to={`/booking/${booking.id}`} key={booking.id}>
+                <BookingCard booking={booking} />
+              </Link>
             ))}
           </TabsContent>
           
@@ -149,7 +152,9 @@ export default function Bookings() {
             {bookings
               .filter((booking) => booking.type === "accommodation")
               .map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
+                <Link to={`/booking/${booking.id}`} key={booking.id}>
+                  <BookingCard booking={booking} />
+                </Link>
               ))}
           </TabsContent>
           
@@ -157,7 +162,9 @@ export default function Bookings() {
             {bookings
               .filter((booking) => booking.type === "activity")
               .map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
+                <Link to={`/booking/${booking.id}`} key={booking.id}>
+                  <BookingCard booking={booking} />
+                </Link>
               ))}
           </TabsContent>
           
@@ -165,7 +172,9 @@ export default function Bookings() {
             {bookings
               .filter((booking) => booking.type === "transport")
               .map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
+                <Link to={`/booking/${booking.id}`} key={booking.id}>
+                  <BookingCard booking={booking} />
+                </Link>
               ))}
           </TabsContent>
         </Tabs>
