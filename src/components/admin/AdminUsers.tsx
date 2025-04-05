@@ -94,16 +94,16 @@ export function AdminUsers() {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-2xl font-bold">User Management</h2>
         
-        <div className="flex items-center gap-4">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="relative w-full sm:w-auto">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search users..."
-              className="w-full md:w-[300px] pl-8"
+              className="w-full pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -111,11 +111,11 @@ export function AdminUsers() {
           
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <UserPlus className="mr-2 h-4 w-4" /> Add User
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[95%] max-w-md mx-auto">
               <DialogHeader>
                 <DialogTitle>Add New User</DialogTitle>
                 <DialogDescription>
@@ -124,7 +124,7 @@ export function AdminUsers() {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="name" className="col-span-1 text-right">
+                  <label htmlFor="name" className="col-span-1 text-right text-sm">
                     Name
                   </label>
                   <Input
@@ -134,7 +134,7 @@ export function AdminUsers() {
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="email" className="col-span-1 text-right">
+                  <label htmlFor="email" className="col-span-1 text-right text-sm">
                     Email
                   </label>
                   <Input
@@ -145,7 +145,7 @@ export function AdminUsers() {
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="role" className="col-span-1 text-right">
+                  <label htmlFor="role" className="col-span-1 text-right text-sm">
                     Role
                   </label>
                   <select
@@ -168,14 +168,14 @@ export function AdminUsers() {
         </div>
       </div>
       
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead className="hidden sm:table-cell">Email</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Joined</TableHead>
+              <TableHead className="hidden sm:table-cell">Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -199,18 +199,20 @@ export function AdminUsers() {
               paginatedUsers.map((user: any) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex items-center space-x-3 max-w-[150px] sm:max-w-full">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         {user.photoURL ? (
                           <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full" />
                         ) : (
                           <Users className="h-4 w-4 text-gray-500" />
                         )}
                       </div>
-                      <span>{user.displayName || 'Unnamed User'}</span>
+                      <span className="truncate text-contained">{user.displayName || 'Unnamed User'}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <span className="truncate text-contained">{user.email}</span>
+                  </TableCell>
                   <TableCell>
                     {user.isAdmin ? (
                       <Badge variant="default" className="bg-filipino-deepTeal">Admin</Badge>
@@ -218,7 +220,7 @@ export function AdminUsers() {
                       <Badge variant="outline">User</Badge>
                     )}
                   </TableCell>
-                  <TableCell>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

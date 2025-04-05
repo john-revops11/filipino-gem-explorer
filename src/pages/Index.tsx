@@ -33,9 +33,11 @@ const Index = () => {
       <Header />
       
       <div className="px-4">
-        <div className="filipino-pattern rounded-lg p-6 mt-4 mb-6 overflow-hidden">
-          <h1 className="text-2xl font-bold mb-2 break-words line-clamp-2">Discover the Philippines</h1>
-          <p className="text-muted-foreground line-clamp-3">
+        <div className="filipino-pattern rounded-lg p-4 sm:p-6 mt-4 mb-6 overflow-hidden">
+          <h1 className="text-xl sm:text-2xl font-bold mb-2 break-words text-contained">
+            Discover the Philippines
+          </h1>
+          <p className="text-muted-foreground truncate-2 sm:truncate-3">
             Explore hidden gems and authentic local experiences
           </p>
         </div>
