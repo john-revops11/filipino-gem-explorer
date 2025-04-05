@@ -7,6 +7,7 @@ import { Bookmark, Edit, Save, AlertTriangle } from "lucide-react";
 import databaseService, { Itinerary } from "@/services/database-service";
 import { auth } from "@/services/firebase";
 import { toast } from "sonner";
+import FormattedItinerary from "./FormattedItinerary";
 
 interface ItineraryResultProps {
   destination: string;
@@ -27,6 +28,7 @@ export function ItineraryResult({
   const [editedContent, setEditedContent] = useState(itineraryContent);
   const [isSavingLocally, setIsSavingLocally] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
+  const [useFormattedView, setUseFormattedView] = useState(true);
 
   const renderContent = useCallback(() => {
     try {
@@ -36,6 +38,11 @@ export function ItineraryResult({
             <p className="text-muted-foreground">No itinerary content available. Generate an itinerary first.</p>
           </div>
         );
+      }
+      
+      // If destination contains "Cebu" and we want to use the formatted view
+      if (destination.toLowerCase().includes("cebu") && useFormattedView) {
+        return <FormattedItinerary />;
       }
       
       return (
@@ -65,7 +72,7 @@ export function ItineraryResult({
         </div>
       );
     }
-  }, [itineraryContent]);
+  }, [itineraryContent, destination, useFormattedView]);
 
   const handleSaveEdit = () => {
     setIsEditing(false);
@@ -115,11 +122,25 @@ export function ItineraryResult({
     }
   };
 
+  const toggleViewMode = () => {
+    setUseFormattedView(!useFormattedView);
+  };
+
   return (
     <Card className="mt-4">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl">
-          {days}-Day Itinerary for {destination}
+        <CardTitle className="text-xl flex justify-between items-center">
+          <span>{days}-Day Itinerary for {destination}</span>
+          {destination.toLowerCase().includes("cebu") && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={toggleViewMode}
+              className="text-xs"
+            >
+              {useFormattedView ? "Switch to Standard View" : "Switch to Enhanced View"}
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
