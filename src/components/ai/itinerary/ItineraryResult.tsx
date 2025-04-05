@@ -8,6 +8,7 @@ import databaseService, { Itinerary } from "@/services/database-service";
 import { auth } from "@/services/firebase";
 import { toast } from "sonner";
 import FormattedItinerary from "./FormattedItinerary";
+import { parseItineraryContent } from "@/utils/content-parser";
 
 interface ItineraryResultProps {
   destination: string;
@@ -42,16 +43,28 @@ export function ItineraryResult({
       
       // If we want to use the formatted view
       if (useFormattedView) {
+        // Parse the content to extract structured data
+        const parsedContent = parseItineraryContent(
+          isEditing ? editedContent : itineraryContent, 
+          destination
+        );
+        
         // Get travel dates from content if possible
         let dateInfo = "";
-        const dateMatch = itineraryContent.match(/\(([A-Za-z]+\s+\d+(?:-\d+)?(?:,\s+\d{4})?)\)/);
-        if (dateMatch) {
-          dateInfo = dateMatch[1];
+        try {
+          const dateMatch = itineraryContent.match(/\(([A-Za-z]+\s+\d+(?:-\d+)?(?:,\s+\d{4})?)\)/);
+          if (dateMatch) {
+            dateInfo = dateMatch[1];
+          } else if (parsedContent.sections && parsedContent.sections[0] && parsedContent.sections[0].date) {
+            dateInfo = parsedContent.sections[0].date;
+          }
+        } catch (error) {
+          console.error("Error extracting date info:", error);
         }
         
         return (
           <FormattedItinerary
-            title={`${days}-Day Itinerary for ${destination}`}
+            title={parsedContent.title || `${days}-Day Itinerary for ${destination}`}
             destination={destination}
             date={dateInfo || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             rawContent={isEditing ? editedContent : itineraryContent}

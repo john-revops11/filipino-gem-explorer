@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Clock, Calendar, ExternalLink, Map } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { parseItineraryContent } from "@/utils/content-parser";
 
 interface Place {
   name: string;
@@ -11,12 +12,14 @@ interface Place {
   description: string;
   entranceFee?: string;
   imageUrl: string;
+  duration?: string;
 }
 
 interface ItinerarySection {
   title: string;
   description: string;
   places: Place[];
+  date?: string;
 }
 
 export interface FormattedItineraryProps {
@@ -50,170 +53,13 @@ export default function FormattedItinerary({
     window.open(`https://www.google.com/search?q=${encodeURIComponent(place + " " + destination)}`, "_blank");
   };
 
-  // Improved section extraction from raw content
-  const generateSectionsFromRawContent = () => {
-    if (sections.length > 0 || !rawContent) return sections;
-    
-    try {
-      const lines = rawContent.split('\n');
-      const extractedSections: ItinerarySection[] = [];
-      let currentSection: ItinerarySection | null = null;
-      let currentPlace: Place | null = null;
-      
-      // Common patterns in itinerary content
-      const sectionPatterns = [
-        /^## (.+)/,                    // ## Day 1
-        /\*\*Day \d+[:\-–]?\s*(.+?)\*\*/i,  // **Day 1: Arrival...**
-        /^Day \d+[:\-–]?\s*(.+)/i,     // Day 1: Exploring
-        /^Morning|^Afternoon|^Evening|^Night/i,  // Morning section
-        /^\*\*(.+?)\*\*/,               // **Section Title**
-        /^\d+[:.]\s+Day \d+/            // 1. Day 1
-      ];
-      
-      const timePatterns = [
-        /(\d{1,2}:\d{2}\s*(AM|PM))/i,   // 8:00 AM
-        /(\d{1,2}\s*(AM|PM))/i,         // 8 AM
-        /\*\*(Morning|Afternoon|Evening):\*\*/i  // **Morning:**
-      ];
-      
-      lines.forEach(line => {
-        line = line.trim();
-        if (!line) return;
-        
-        // Try to identify section headers
-        const isSectionHeader = sectionPatterns.some(pattern => pattern.test(line));
-        
-        if (isSectionHeader) {
-          if (currentSection && currentSection.places.length > 0) {
-            extractedSections.push(currentSection);
-          }
-          
-          let sectionTitle = line
-            .replace(/^##\s+/, '')
-            .replace(/^\*\*|\*\*$/g, '')
-            .replace(/^\d+[:.]\s+/, '')
-            .trim();
-          
-          currentSection = {
-            title: sectionTitle,
-            description: "Explore and enjoy the local attractions",
-            places: []
-          };
-        
-        // Try to identify places with times
-        } else if (line.startsWith('*')) {
-          let timeMatch = null;
-          for (const pattern of timePatterns) {
-            timeMatch = line.match(pattern);
-            if (timeMatch) break;
-          }
-          
-          const bulletMatch = line.match(/\*\s+(.*)/); // Match the bullet point content
-          
-          if (bulletMatch && currentSection) {
-            let placeLine = bulletMatch[1];
-            let time = "Flexible";
-            let placeName = placeLine;
-            
-            // Try to extract time
-            if (timeMatch) {
-              time = timeMatch[1];
-              // Remove the time from the place name
-              placeName = placeLine.replace(timeMatch[0], '').trim();
-            } else {
-              // Check if there's a time with a colon
-              const colonTimeMatch = placeLine.match(/(\d{1,2}:\d{2})/);
-              if (colonTimeMatch) {
-                time = colonTimeMatch[1];
-                placeName = placeLine.replace(colonTimeMatch[0], '').trim();
-              }
-            }
-            
-            // Extract place name - usually follows the time or bullets
-            placeName = placeName
-              .replace(/^\*\s+|\*\s+|\*\*|\*\*$|^-\s+/g, '')  // Remove bullets and stars
-              .replace(/:/g, '')                              // Remove colons
-              .trim();
-              
-            // If the place name starts with a verb like "Visit", take the next part
-            const visitMatch = placeName.match(/^(Visit|Explore|Go to|Check out|Head to|Stop by|Arrive at)\s+(.+?)[\.,]/i);
-            if (visitMatch) {
-              placeName = visitMatch[2].trim();
-            }
-            
-            // Extract the first sentence if the place name is too long
-            if (placeName.length > 60) {
-              const parts = placeName.split('.');
-              if (parts.length > 1) {
-                placeName = parts[0].trim();
-              } else {
-                placeName = placeName.substring(0, 60) + '...';
-              }
-            }
-            
-            if (placeName && placeName.length > 1) {
-              // Extract entrance fee if mentioned
-              let entranceFee = "";
-              if (placeLine.match(/(Entrance Fee|Cost|Price|Fee)[:\s]+([\₱\$\€]?\s*\d+[\-\–]?\d*)/i)) {
-                const feeMatch = placeLine.match(/([\₱\$\€]?\s*\d+[\-\–]?\d*)/i);
-                if (feeMatch) {
-                  entranceFee = feeMatch[0];
-                }
-              }
-              
-              currentPlace = {
-                name: placeName,
-                time: time,
-                description: placeLine.replace(placeName, '').trim(),
-                entranceFee: entranceFee,
-                imageUrl: getDefaultImage(placeName, destination)
-              };
-              currentSection.places.push(currentPlace);
-            }
-          }
-        
-        // Add description to the current place
-        } else if (currentPlace && line && !line.startsWith('#') && !line.startsWith('*')) {
-          currentPlace.description += (currentPlace.description ? " " : "") + line;
-          
-          // Try to extract entrance fee if mentioned
-          if (line.match(/entrance fee|cost|price|fee/i)) {
-            const feeMatch = line.match(/[\₱\$\€]?\s*\d+[\-\–]?\d*/i);
-            if (feeMatch) {
-              currentPlace.entranceFee = feeMatch[0];
-            }
-          }
-        }
-      });
-      
-      // Add the last section if it exists
-      if (currentSection && currentSection.places.length > 0) {
-        extractedSections.push(currentSection);
-      }
-      
-      // If no sections were created but we have content, create a default section
-      if (extractedSections.length === 0 && rawContent.length > 0) {
-        return [{
-          title: `${destination} Highlights`,
-          description: "Key attractions and experiences",
-          places: [{
-            name: destination,
-            time: "Flexible",
-            description: rawContent.substring(0, 200) + "...",
-            imageUrl: getDefaultImage(destination, "travel")
-          }]
-        }];
-      }
-      
-      return extractedSections;
-    } catch (error) {
-      console.error("Error parsing raw content:", error);
-      return [];
-    }
-  };
+  // Process the content if we don't have sections already
+  const processedContent = rawContent && !sections.length 
+    ? parseItineraryContent(rawContent, destination)
+    : { title: title || `${destination} Itinerary`, sections };
 
-  const finalSections = generateSectionsFromRawContent();
-  const finalTitle = title || `${destination} Itinerary`;
+  const finalSections = processedContent.sections;
+  const finalTitle = title || processedContent.title || `${destination} Itinerary`;
   const finalDate = date || "Your travel dates";
   const finalSubtitle = subtitle || "Explore and experience the local culture";
 
@@ -248,15 +94,22 @@ export default function FormattedItinerary({
       {/* Itinerary Content */}
       <div className="p-6">
         {finalSections.map((section, sectionIndex) => (
-          <div key={sectionIndex} className="mb-8">
-            <h2 className="text-xl font-semibold text-filipino-deepTeal mb-2">{section.title}</h2>
-            <p className="text-muted-foreground mb-4">{section.description}</p>
+          <div key={sectionIndex} className="mb-10 pb-6 border-b border-gray-200 last:border-b-0">
+            <div className="flex items-center mb-3">
+              <h2 className="text-xl font-semibold text-filipino-deepTeal">{section.title}</h2>
+              {section.date && (
+                <span className="ml-3 text-sm bg-filipino-teal/10 text-filipino-teal px-2 py-1 rounded-full">
+                  {section.date}
+                </span>
+              )}
+            </div>
+            <p className="text-muted-foreground mb-6">{section.description}</p>
             
             <div className="space-y-6">
               {section.places.map((place, placeIndex) => (
                 <Card key={placeIndex} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="relative h-48 md:h-full">
+                    <div className="relative h-60 md:h-full">
                       <img 
                         src={place.imageUrl} 
                         alt={place.name}
@@ -266,23 +119,32 @@ export default function FormattedItinerary({
                           (e.target as HTMLImageElement).src = getDefaultImage(place.name, destination);
                         }}
                       />
+                      <div className="absolute top-0 right-0 m-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                        {place.time}
+                      </div>
                     </div>
                     <div className="p-4 md:col-span-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <h3 className="font-bold text-lg">{place.name}</h3>
-                        <div className="flex items-center text-muted-foreground">
+                        <div className="flex items-center mt-1 sm:mt-0 text-muted-foreground text-sm">
                           <Clock className="h-4 w-4 mr-1" />
-                          <span>{place.time}</span>
+                          {place.duration ? (
+                            <span>Duration: {place.duration}</span>
+                          ) : (
+                            <span>Flexible time</span>
+                          )}
                         </div>
                       </div>
                       
-                      <p className="mt-2 text-sm">{place.description}</p>
+                      <p className="mt-3 text-sm text-gray-600">{place.description}</p>
                       
-                      {place.entranceFee && (
-                        <div className="mt-2 text-sm text-muted-foreground">
-                          <strong>Entrance Fee:</strong> {place.entranceFee}
-                        </div>
-                      )}
+                      <div className="mt-3 space-y-2">
+                        {place.entranceFee && (
+                          <div className="inline-block mr-4 text-sm bg-filipino-warmOchre/10 text-filipino-warmOchre px-2 py-1 rounded">
+                            <strong>Entrance:</strong> {place.entranceFee}
+                          </div>
+                        )}
+                      </div>
                       
                       <div className="mt-4 flex gap-2">
                         <Button 
