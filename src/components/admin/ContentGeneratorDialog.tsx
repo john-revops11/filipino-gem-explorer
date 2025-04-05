@@ -38,13 +38,6 @@ import {
   generateToursAndEvents
 } from "@/services/gemini-api";
 import { parseDestinations, generateFoodsForDestination } from "@/utils/content-parser";
-import { 
-  getFallbackItinerary, 
-  getFallbackDestinationProfile,
-  getFallbackFoodInfo,
-  getFallbackEventInfo,
-  getFallbackPlaceInfo
-} from "@/utils/fallback-content";
 
 type ContentType = "destination" | "place" | "food" | "itinerary" | "event";
 
@@ -168,18 +161,11 @@ export function ContentGeneratorDialog() {
     try {
       console.log("Generating itinerary for:", location, days, travelStyle, preferences);
       
-      let itineraryData: string;
-      try {
-        itineraryData = await generateItinerary(
-          location,
-          parseInt(days),
-          `Travel style: ${travelStyle}. ${preferences}`
-        );
-      } catch (error) {
-        console.warn("Failed to generate itinerary with API, using fallback content", error);
-        toast.warning("Using simplified itinerary due to generation issues");
-        itineraryData = getFallbackItinerary(location, parseInt(days));
-      }
+      const itineraryData = await generateItinerary(
+        location,
+        parseInt(days),
+        `Travel style: ${travelStyle}. ${preferences}`
+      );
       
       if (!itineraryData) {
         throw new Error("No itinerary data was returned");
