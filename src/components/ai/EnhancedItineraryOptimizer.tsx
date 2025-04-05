@@ -5,7 +5,6 @@ import { ItineraryForm } from "@/components/ai/itinerary/ItineraryForm";
 import { ItineraryResult } from "@/components/ai/itinerary/ItineraryResult";
 import { AuthPrompt } from "@/components/auth/AuthPrompt";
 import { generateItinerary } from "@/services/gemini-api";
-import { getFallbackItinerary } from "@/utils/fallback-content";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 
@@ -63,28 +62,10 @@ export function EnhancedItineraryOptimizer({
     } catch (error) {
       console.error("Error generating itinerary:", error);
       setGenerationError(error instanceof Error ? error.message : 'Unknown error occurred');
-      toast.error("Could not generate a personalized itinerary", {
-        description: "Using a general template instead. You can edit it to customize."
+      toast.error("Could not generate an itinerary", {
+        description: "Please try again with different parameters."
       });
-      
-      // Use fallback itinerary
-      const fallbackItinerary = getFallbackItinerary(currentDestination, parseInt(currentDays) || 3);
-      
-      // Add date information if available
-      let enhancedFallback = fallbackItinerary;
-      if (startDate) {
-        const endDate = addDays(startDate, parseInt(currentDays) || 3);
-        const dateRange = `\n\n## Trip Dates\n* **Start Date**: ${format(startDate, 'MMMM d, yyyy')}\n* **End Date**: ${format(endDate, 'MMMM d, yyyy')}`;
-        enhancedFallback += dateRange;
-      }
-      
-      // Add preferences if available
-      if (currentPreferences && currentPreferences.trim() !== '') {
-        const preferencesNote = `\n\n## Travel Preferences\n* ${currentPreferences}`;
-        enhancedFallback += preferencesNote;
-      }
-      
-      setGeneratedItinerary(enhancedFallback);
+      setGeneratedItinerary(""); // Clear any previous content
       
     } finally {
       setIsGenerating(false);
@@ -131,7 +112,7 @@ export function EnhancedItineraryOptimizer({
       {generationError && (
         <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-400 rounded">
           <p className="text-sm text-red-700">
-            There was an error generating your personalized itinerary. Using a general template instead.
+            There was an error generating your itinerary. Please try again or modify your request.
           </p>
         </div>
       )}

@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,7 +7,6 @@ import { Bookmark, Edit, Save, AlertTriangle } from "lucide-react";
 import databaseService, { Itinerary } from "@/services/database-service";
 import { auth } from "@/services/firebase";
 import { toast } from "sonner";
-import { getFallbackItinerary } from "@/utils/fallback-content";
 
 interface ItineraryResultProps {
   destination: string;
@@ -31,19 +31,9 @@ export function ItineraryResult({
   const renderContent = useCallback(() => {
     try {
       if (!itineraryContent || itineraryContent.trim() === '') {
-        const fallbackContent = getFallbackItinerary(destination, parseInt(days));
         return (
-          <div className="prose prose-sm max-w-none overflow-auto">
-            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-4">
-              <div className="flex items-center">
-                <AlertTriangle className="h-5 w-5 text-amber-400 mr-2" />
-                <p className="text-amber-700 font-medium">Using fallback content</p>
-              </div>
-              <p className="text-amber-600 text-sm">
-                We couldn't generate a personalized itinerary. Here's a general template instead.
-              </p>
-            </div>
-            <div dangerouslySetInnerHTML={{ __html: fallbackContent }} />
+          <div className="text-center p-6">
+            <p className="text-muted-foreground">No itinerary content available. Generate an itinerary first.</p>
           </div>
         );
       }
@@ -75,7 +65,7 @@ export function ItineraryResult({
         </div>
       );
     }
-  }, [itineraryContent, destination, days]);
+  }, [itineraryContent]);
 
   const handleSaveEdit = () => {
     setIsEditing(false);

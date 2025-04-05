@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 // This should match the BookingType in Bookings.tsx
 type BookingType = {
@@ -37,65 +38,41 @@ type BookingType = {
   bookingDate: string;
 };
 
-// Using the same mock data as in Bookings.tsx
-const mockBookings: BookingType[] = [
-  {
-    id: "1",
-    type: "accommodation",
-    title: "Shangri-La Boracay Resort & Spa",
-    location: "Boracay, Aklan",
-    dateRange: "May 15-18, 2025",
-    status: "confirmed",
-    image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=1925",
-    price: "₱45,000",
-    paymentStatus: "full",
-    confirmationCode: "SLBR-12345",
-    bookingDate: "January 15, 2025"
-  },
-  {
-    id: "2",
-    type: "activity",
-    title: "Palawan Island Hopping Tour",
-    location: "El Nido, Palawan",
-    dateRange: "June 10, 2025",
-    status: "pending",
-    image: "https://images.unsplash.com/photo-1518509562904-e7ef99cdbc75?q=80&w=1974",
-    price: "₱2,500",
-    paymentStatus: "partial",
-    paymentProgress: 50,
-    confirmationCode: "PLTOUR-6789",
-    bookingDate: "February 2, 2025"
-  },
-  {
-    id: "3",
-    type: "transport",
-    title: "Manila to Cebu - One-way Flight",
-    location: "Manila to Cebu",
-    dateRange: "April 5, 2025 • 8:30 AM",
-    status: "confirmed",
-    image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074",
-    price: "₱3,200",
-    paymentStatus: "full",
-    confirmationCode: "PAL-87654",
-    bookingDate: "January 30, 2025"
-  }
-];
-
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [booking, setBooking] = useState<BookingType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API fetch with a timeout
-    const timer = setTimeout(() => {
-      const foundBooking = mockBookings.find(booking => booking.id === id) || null;
-      setBooking(foundBooking);
-      setIsLoading(false);
-    }, 600);
+    // Redirect to bookings page if no ID provided
+    if (!id) {
+      navigate('/bookings');
+      return;
+    }
     
-    return () => clearTimeout(timer);
-  }, [id]);
+    async function fetchBookingDetails() {
+      setIsLoading(true);
+      
+      try {
+        // In a real app, this would fetch from an API
+        // For this demo, we'll check if user is logged in
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Since we're removing mock data, we'll always show booking not found
+        setBooking(null);
+      } catch (error) {
+        console.error("Error fetching booking details:", error);
+        toast.error("Failed to load booking details");
+        setBooking(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchBookingDetails();
+  }, [id, navigate]);
 
   if (isLoading) {
     return (
@@ -117,7 +94,7 @@ export default function BookingDetail() {
           <EmptyState
             icon={AlertCircle}
             title="Booking Not Found"
-            description="We couldn't find the booking you're looking for."
+            description="We couldn't find the booking you're looking for. You need to make a booking first."
             action={
               <Link to="/bookings">
                 <Button className="bg-filipino-terracotta hover:bg-filipino-terracotta/90">
@@ -132,6 +109,8 @@ export default function BookingDetail() {
     );
   }
 
+  // The code below will not be reached since we're always setting booking to null,
+  // but I'm keeping it for reference in case real booking data is implemented later
   const getStatusColor = (status: string) => {
     return status === "confirmed" 
       ? "bg-green-100 text-green-800 border-green-200" 

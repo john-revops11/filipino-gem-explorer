@@ -1,39 +1,107 @@
 
+import { useState, useEffect } from "react";
 import { DestinationCard } from "./DestinationCard";
 import { Calendar } from "lucide-react";
+import { generateToursAndEvents } from "@/services/gemini-api";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock data for cultural events
-const culturalEvents = [
-  {
-    id: "event1",
-    name: "Sinulog Festival",
-    location: "Cebu City",
-    image: "https://images.unsplash.com/photo-1493962853295-0fd70327578a?auto=format&fit=crop&w=800&q=80",
-    date: "January 15, 2025",
-  },
-  {
-    id: "event2",
-    name: "Kadayawan Festival",
-    location: "Davao City",
-    image: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d?auto=format&fit=crop&w=800&q=80",
-    date: "August 17-23, 2024",
-  },
-  {
-    id: "event3",
-    name: "Pahiyas Festival",
-    location: "Lucban, Quezon",
-    image: "https://images.unsplash.com/photo-1452378174528-3090a4bba7b2?auto=format&fit=crop&w=800&q=80",
-    date: "May 15, 2025",
-  },
-];
+type Event = {
+  id: string;
+  name: string;
+  location: string;
+  image: string;
+  date: string;
+};
 
 export function UpcomingEvents() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        // Generate cultural events for Philippines using AI
+        const eventsData = await generateToursAndEvents({
+          location: "Philippines",
+          eventType: "Cultural Festival",
+          date: "Upcoming months",
+          description: "Traditional celebrations and festivals"
+        });
+        
+        // Parse the response
+        let parsedEvents;
+        try {
+          parsedEvents = JSON.parse(eventsData);
+        } catch (e) {
+          console.error("Error parsing events data:", e);
+          // If parsing fails, create a basic event
+          parsedEvents = [{
+            name: "Filipino Cultural Festival",
+            location: "Manila",
+            date: "Coming soon"
+          }];
+        }
+        
+        // Transform data into events format
+        let transformedEvents: Event[] = [];
+        
+        if (Array.isArray(parsedEvents)) {
+          transformedEvents = parsedEvents.map((event, index) => ({
+            id: `event${index + 1}`,
+            name: event.name,
+            location: event.location || "Philippines",
+            image: event.image || `https://images.unsplash.com/photo-${1450000000000 + index * 1000}-${100000000 + index}?auto=format&fit=crop&w=800&q=80`,
+            date: event.date || "Coming soon"
+          }));
+        } else {
+          transformedEvents = [{
+            id: "event1",
+            name: parsedEvents.name || "Filipino Cultural Festival",
+            location: parsedEvents.location || "Philippines",
+            image: parsedEvents.image || "https://images.unsplash.com/photo-1493962853295-0fd70327578a?auto=format&fit=crop&w=800&q=80",
+            date: parsedEvents.date || "Coming soon"
+          }];
+        }
+        
+        setEvents(transformedEvents.slice(0, 3)); // Limit to 3 events
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setEvents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchEvents();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <section className="py-6">
+        <h2 className="section-title mb-4">Upcoming Cultural Events</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-48 w-full rounded-md" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (events.length === 0) {
+    return null;
+  }
+
   return (
     <section className="py-6">
       <h2 className="section-title mb-4">Upcoming Cultural Events</h2>
       
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {culturalEvents.map((event) => (
+        {events.map((event) => (
           <div key={event.id} className="relative">
             <DestinationCard
               id={event.id}

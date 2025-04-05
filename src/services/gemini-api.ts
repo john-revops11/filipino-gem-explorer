@@ -1,3 +1,4 @@
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Access your API key (directly using the provided key)
@@ -65,7 +66,13 @@ export async function answerTravelQuestion(
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Received empty response from Gemini API");
+    }
+    
+    return text;
   } catch (error) {
     console.error("Error answering travel question with Gemini:", error);
     throw new Error("Failed to answer travel question");
@@ -83,11 +90,30 @@ export async function generateTravelRecommendations(
       ${options.preferences ? `Preferences: ${options.preferences}` : ''}
       
       Include key attractions, best times to visit, and cultural insights.
+      
+      Format the response as a JSON array with the following structure:
+      [
+        {
+          "name": "Destination Name",
+          "description": "Detailed description of the place and why it's recommended.",
+          "image": "",
+          "tags": ["tag1", "tag2"],
+          "score": 0.95
+        }
+      ]
+      
+      Return at least 3 recommendations.
     `;
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Received empty response from Gemini API");
+    }
+    
+    return text;
   } catch (error) {
     console.error("Error generating travel recommendations with Gemini:", error);
     throw new Error("Failed to generate recommendations");
@@ -117,7 +143,13 @@ export async function generatePhilippinesDestinationProfile(
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Received empty response from Gemini API");
+    }
+    
+    return text;
   } catch (error) {
     console.error("Error generating destination profile with Gemini:", error);
     throw new Error("Failed to generate destination profile");
@@ -146,7 +178,13 @@ export async function generatePlaceDetails(
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Received empty response from Gemini API");
+    }
+    
+    return text;
   } catch (error) {
     console.error("Error generating place details with Gemini:", error);
     throw new Error("Failed to generate place details");
@@ -174,7 +212,13 @@ export async function generateFoodCuisineInfo(
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Received empty response from Gemini API");
+    }
+    
+    return text;
   } catch (error) {
     console.error("Error generating food information with Gemini:", error);
     throw new Error("Failed to generate food information");
@@ -193,19 +237,29 @@ export async function generateToursAndEvents(
       ${options.description ? `Known highlights: ${options.description}` : ''}
       
       Format as JSON with the following structure:
-      {
-        "name": "Event Name",
-        "type": "${options.eventType}",
-        "description": "Detailed description",
-        "location": "${options.location}",
-        "date": "${options.date || 'Year-round'}",
-        "tags": ["tag1", "tag2"]
-      }
+      [
+        {
+          "name": "Event Name",
+          "type": "${options.eventType}",
+          "description": "Detailed description",
+          "location": "${options.location}",
+          "date": "${options.date || 'Year-round'}",
+          "tags": ["tag1", "tag2"]
+        }
+      ]
+      
+      Return at least 3 events or tours. Don't include image URLs, we'll handle those separately.
     `;
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Received empty response from Gemini API");
+    }
+    
+    return text;
   } catch (error) {
     console.error("Error generating tours and events with Gemini:", error);
     throw new Error("Failed to generate tours and events");

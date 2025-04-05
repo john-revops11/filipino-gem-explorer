@@ -13,7 +13,7 @@ export const parseDestinations = (text: string, count = 3) => {
         region: item.region || "Philippines",
         description: item.description || item.overview || "",
         tags: item.tags || ["Generated", "AI"],
-        image: item.image || `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80`,
+        image: item.image || `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=800&q=80`,
       }));
     } else if (typeof jsonData === 'object') {
       return [{
@@ -21,7 +21,7 @@ export const parseDestinations = (text: string, count = 3) => {
         region: jsonData.region || "Philippines",
         description: jsonData.description || jsonData.overview || "",
         tags: jsonData.tags || ["Generated", "AI"],
-        image: jsonData.image || `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80`,
+        image: jsonData.image || `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=800&q=80`,
       }];
     }
   } catch (e) {
@@ -61,7 +61,7 @@ export const parseDestinations = (text: string, count = 3) => {
           region: region,
           description: "",
           tags: ["Generated", "AI"],
-          image: `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80`,
+          image: `https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=800&q=80`,
         };
         destinations.push(currentDestination);
       }
@@ -141,7 +141,7 @@ export const generateFoodsForDestination = async (destination: any) => {
       
       // Add default image if none
       if (!food.image) {
-        food.image = "https://images.unsplash.com/photo-1518130155837-56c9ce8caa1a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=870&q=80";
+        food.image = "https://images.unsplash.com/photo-1518130155837-56c9ce8caa1a?auto=format&fit=crop&w=800&q=80";
       }
       
       // Ensure tags includes the destination name
@@ -172,7 +172,34 @@ export const parsePlaces = (text: string, count = 3) => {
     }
   } catch (e) {
     console.error("Error parsing place data:", e);
-    return [];
+    
+    // If parsing fails, try to extract information from text
+    const places = [];
+    const lines = text.split('\n');
+    let currentPlace = null;
+    
+    for (const line of lines) {
+      if (line.match(/^\d+\.\s+(.+)/) || line.match(/^#\s+(.+)/) || line.match(/^##\s+(.+)/)) {
+        if (places.length < count) {
+          const nameMatch = line.match(/^\d+\.\s+(.+)/) || line.match(/^#\s+(.+)/) || line.match(/^##\s+(.+)/);
+          const name = nameMatch ? nameMatch[1].trim() : "Unknown Place";
+          
+          currentPlace = {
+            name: name,
+            type: "Attraction",
+            description: "",
+            location: "Philippines",
+            tags: ["Generated", "AI"],
+          };
+          
+          places.push(currentPlace);
+        }
+      } else if (currentPlace && line.trim()) {
+        currentPlace.description += line + " ";
+      }
+    }
+    
+    return places;
   }
 };
 
@@ -187,6 +214,34 @@ export const parseEvents = (text: string, count = 3) => {
     }
   } catch (e) {
     console.error("Error parsing event data:", e);
-    return [];
+    
+    // If parsing fails, try to extract information from text
+    const events = [];
+    const lines = text.split('\n');
+    let currentEvent = null;
+    
+    for (const line of lines) {
+      if (line.match(/^\d+\.\s+(.+)/) || line.match(/^#\s+(.+)/) || line.match(/^##\s+(.+)/)) {
+        if (events.length < count) {
+          const nameMatch = line.match(/^\d+\.\s+(.+)/) || line.match(/^#\s+(.+)/) || line.match(/^##\s+(.+)/);
+          const name = nameMatch ? nameMatch[1].trim() : "Unknown Event";
+          
+          currentEvent = {
+            name: name,
+            type: "Festival",
+            description: "",
+            location: "Philippines",
+            date: "Annual event",
+            tags: ["Generated", "AI"],
+          };
+          
+          events.push(currentEvent);
+        }
+      } else if (currentEvent && line.trim()) {
+        currentEvent.description += line + " ";
+      }
+    }
+    
+    return events;
   }
 };
