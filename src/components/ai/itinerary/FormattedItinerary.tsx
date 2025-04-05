@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Clock, Calendar, ExternalLink, Map } from "lucide-react";
+import { MapPin, Clock, Calendar, ExternalLink, Map, ChevronDown, ChevronUp } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { parseItineraryContent } from "@/utils/content-parser";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Place {
   name: string;
@@ -48,9 +49,17 @@ export default function FormattedItinerary({
 }: FormattedItineraryProps) {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<number, boolean>>({0: true});
 
   const handleVisitPlace = (place: string) => {
     window.open(`https://www.google.com/search?q=${encodeURIComponent(place + " " + destination)}`, "_blank");
+  };
+
+  const toggleSection = (index: number) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
   };
 
   // Process the content if we don't have sections already
@@ -94,85 +103,102 @@ export default function FormattedItinerary({
       {/* Itinerary Content */}
       <div className="p-6">
         {finalSections.map((section, sectionIndex) => (
-          <div key={sectionIndex} className="mb-10 pb-6 border-b border-gray-200 last:border-b-0">
-            <div className="flex items-center mb-3">
-              <h2 className="text-xl font-semibold text-filipino-deepTeal">{section.title}</h2>
-              {section.date && (
-                <span className="ml-3 text-sm bg-filipino-teal/10 text-filipino-teal px-2 py-1 rounded-full">
-                  {section.date}
-                </span>
-              )}
+          <Collapsible 
+            key={sectionIndex} 
+            open={openSections[sectionIndex]} 
+            onOpenChange={() => toggleSection(sectionIndex)}
+            className="mb-4 border rounded-lg overflow-hidden"
+          >
+            <div className="bg-filipino-teal/10 p-3 border-b">
+              <CollapsibleTrigger className="flex items-center justify-between w-full text-left">
+                <div>
+                  <h2 className="text-xl font-semibold text-filipino-deepTeal">{section.title}</h2>
+                  {section.date && (
+                    <span className="text-sm text-muted-foreground">{section.date}</span>
+                  )}
+                </div>
+                {openSections[sectionIndex] ? (
+                  <ChevronUp className="h-5 w-5 text-filipino-teal" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-filipino-teal" />
+                )}
+              </CollapsibleTrigger>
             </div>
-            <p className="text-muted-foreground mb-6">{section.description}</p>
             
-            <div className="space-y-6">
-              {section.places.map((place, placeIndex) => (
-                <Card key={placeIndex} className="overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="relative h-60 md:h-full">
-                      <img 
-                        src={place.imageUrl} 
-                        alt={place.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Fallback if image fails to load
-                          (e.target as HTMLImageElement).src = getDefaultImage(place.name, destination);
-                        }}
-                      />
-                      <div className="absolute top-0 right-0 m-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                        {place.time}
-                      </div>
-                    </div>
-                    <div className="p-4 md:col-span-2">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <h3 className="font-bold text-lg">{place.name}</h3>
-                        <div className="flex items-center mt-1 sm:mt-0 text-muted-foreground text-sm">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {place.duration ? (
-                            <span>Duration: {place.duration}</span>
-                          ) : (
-                            <span>Flexible time</span>
-                          )}
+            <CollapsibleContent>
+              <div className="p-4">
+                <p className="text-muted-foreground mb-6">{section.description}</p>
+                
+                <div className="space-y-6">
+                  {section.places.map((place, placeIndex) => (
+                    <Card key={placeIndex} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="relative h-60 md:h-full">
+                          <img 
+                            src={place.imageUrl} 
+                            alt={place.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback if image fails to load
+                              (e.target as HTMLImageElement).src = getDefaultImage(place.name, destination);
+                            }}
+                          />
+                          <div className="absolute top-0 right-0 m-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                            {place.time}
+                          </div>
+                        </div>
+                        <div className="p-4 md:col-span-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                            <h3 className="font-bold text-lg">{place.name}</h3>
+                            <div className="flex items-center mt-1 sm:mt-0 text-muted-foreground text-sm">
+                              <Clock className="h-4 w-4 mr-1" />
+                              {place.duration ? (
+                                <span>Duration: {place.duration}</span>
+                              ) : (
+                                <span>Flexible time</span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <p className="mt-3 text-sm text-gray-600">{place.description}</p>
+                          
+                          <div className="mt-3 space-y-2">
+                            {place.entranceFee && (
+                              <div className="inline-block mr-4 text-sm bg-filipino-warmOchre/10 text-filipino-warmOchre px-2 py-1 rounded">
+                                <strong>Entrance:</strong> {place.entranceFee}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="mt-4 flex gap-2">
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleVisitPlace(place.name)}
+                              className="bg-filipino-terracotta hover:bg-filipino-terracotta/90"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Visit
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedPlace(place);
+                                setShowMap(true);
+                              }}
+                            >
+                              <MapPin className="h-4 w-4 mr-2" />
+                              Map
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      
-                      <p className="mt-3 text-sm text-gray-600">{place.description}</p>
-                      
-                      <div className="mt-3 space-y-2">
-                        {place.entranceFee && (
-                          <div className="inline-block mr-4 text-sm bg-filipino-warmOchre/10 text-filipino-warmOchre px-2 py-1 rounded">
-                            <strong>Entrance:</strong> {place.entranceFee}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="mt-4 flex gap-2">
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleVisitPlace(place.name)}
-                          className="bg-filipino-terracotta hover:bg-filipino-terracotta/90"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Visit
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedPlace(place);
-                            setShowMap(true);
-                          }}
-                        >
-                          <MapPin className="h-4 w-4 mr-2" />
-                          Map
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         ))}
 
         {/* Additional Information */}
