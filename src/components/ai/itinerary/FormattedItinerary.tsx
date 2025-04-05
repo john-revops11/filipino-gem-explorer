@@ -87,21 +87,21 @@ export default function FormattedItinerary({
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="bg-filipino-teal text-white p-4 sm:p-6">
-        <h1 className="text-xl sm:text-2xl font-bold">{finalTitle}</h1>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 mt-2">
+      <div className="bg-filipino-teal px-4 py-5 sm:p-6 text-white">
+        <h1 className="text-xl sm:text-2xl font-bold break-words">{finalTitle}</h1>
+        <div className="flex flex-wrap items-center gap-2 mt-2">
           <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span className="text-sm sm:text-base">{finalDate}</span>
+            <Calendar className="h-4 w-4 mr-1.5 flex-shrink-0" />
+            <span className="text-sm">{finalDate}</span>
           </div>
           {subtitle && (
             <div className="flex items-center">
-              <span className="hidden sm:inline mx-2">•</span>
-              <span className="text-sm sm:text-base">{finalSubtitle}</span>
+              <span className="mx-1.5 hidden sm:inline">•</span>
+              <span className="text-sm">{finalSubtitle}</span>
             </div>
           )}
         </div>
-        {description && <p className="mt-3 text-white/90 text-xs sm:text-sm">{description}</p>}
+        {description && <p className="mt-3 text-white/90 text-xs sm:text-sm line-clamp-3 sm:line-clamp-none">{description}</p>}
       </div>
 
       {/* Itinerary Content */}
@@ -113,31 +113,31 @@ export default function FormattedItinerary({
             onOpenChange={() => toggleSection(sectionIndex)}
             className="mb-4 border rounded-lg overflow-hidden"
           >
-            <div className="bg-filipino-teal/10 p-3 border-b">
+            <div className="bg-filipino-teal/10 px-3 py-2.5 border-b">
               <CollapsibleTrigger className="flex items-center justify-between w-full text-left">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-semibold text-filipino-deepTeal">{section.title}</h2>
+                <div className="pr-2">
+                  <h2 className="text-base sm:text-lg font-semibold text-filipino-deepTeal line-clamp-1">{section.title}</h2>
                   {section.date && (
-                    <span className="text-xs sm:text-sm text-muted-foreground">{section.date}</span>
+                    <span className="text-xs text-muted-foreground block truncate">{section.date}</span>
                   )}
                 </div>
                 {openSections[sectionIndex] ? (
-                  <ChevronUp className="h-5 w-5 text-filipino-teal" />
+                  <ChevronUp className="h-5 w-5 text-filipino-teal flex-shrink-0" />
                 ) : (
-                  <ChevronDown className="h-5 w-5 text-filipino-teal" />
+                  <ChevronDown className="h-5 w-5 text-filipino-teal flex-shrink-0" />
                 )}
               </CollapsibleTrigger>
             </div>
             
             <CollapsibleContent>
               <div className="p-3 sm:p-4">
-                <p className="text-sm text-muted-foreground mb-4 sm:mb-6">{section.description}</p>
+                <p className="text-sm text-muted-foreground mb-4">{section.description}</p>
                 
-                <div className="space-y-4 sm:space-y-6">
+                <div className="space-y-4">
                   {section.places.map((place, placeIndex) => (
                     <Card key={placeIndex} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="flex flex-col md:grid md:grid-cols-3 gap-3 sm:gap-4">
-                        <div className="relative h-48 sm:h-60 md:h-full">
+                      <div className="flex flex-col md:grid md:grid-cols-3 gap-3">
+                        <div className="relative h-40 sm:h-48 md:h-full">
                           <img 
                             src={place.imageUrl} 
                             alt={place.name}
@@ -151,39 +151,39 @@ export default function FormattedItinerary({
                             {place.time}
                           </div>
                         </div>
-                        <div className="p-3 sm:p-4 md:col-span-2">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <h3 className="font-bold text-base sm:text-lg line-clamp-2">{place.name}</h3>
-                            <div className="flex items-center text-muted-foreground text-xs sm:text-sm">
-                              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                        <div className="p-3 md:col-span-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
+                            <h3 className="font-bold text-base sm:text-lg line-clamp-2 pr-1">{place.name}</h3>
+                            <div className="flex items-center text-muted-foreground text-xs whitespace-nowrap">
+                              <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
                               {place.duration ? (
-                                <span>Duration: {place.duration}</span>
+                                <span>{place.duration}</span>
                               ) : (
                                 <span>Flexible time</span>
                               )}
                             </div>
                           </div>
                           
-                          <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600 line-clamp-3 sm:line-clamp-none">
+                          <p className="mt-2 text-xs sm:text-sm text-gray-600 line-clamp-3 sm:line-clamp-4">
                             {place.description}
                           </p>
                           
                           {place.entranceFee && (
-                            <div className="mt-2 sm:mt-3">
-                              <span className="inline-block text-xs sm:text-sm bg-filipino-warmOchre/10 text-filipino-warmOchre px-2 py-1 rounded">
+                            <div className="mt-2">
+                              <span className="inline-block text-xs bg-filipino-warmOchre/10 text-filipino-warmOchre px-2 py-1 rounded">
                                 <strong>Entrance:</strong> {place.entranceFee}
                               </span>
                             </div>
                           )}
                           
-                          <div className="mt-3 sm:mt-4 flex flex-wrap gap-2">
+                          <div className="mt-3 flex flex-wrap gap-2">
                             <Button 
                               size={isMobile ? "sm" : "default"} 
                               onClick={() => handleVisitPlace(place.name)}
-                              className="bg-filipino-terracotta hover:bg-filipino-terracotta/90"
+                              className="bg-filipino-terracotta hover:bg-filipino-terracotta/90 text-xs sm:text-sm h-8"
                             >
-                              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                              <span className="text-xs sm:text-sm">Visit</span>
+                              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                              <span>Visit</span>
                             </Button>
                             <Button 
                               size={isMobile ? "sm" : "default"}
@@ -192,9 +192,10 @@ export default function FormattedItinerary({
                                 setSelectedPlace(place);
                                 setShowMap(true);
                               }}
+                              className="text-xs sm:text-sm h-8"
                             >
-                              <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                              <span className="text-xs sm:text-sm">Map</span>
+                              <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                              <span>Map</span>
                             </Button>
                           </div>
                         </div>
@@ -208,22 +209,22 @@ export default function FormattedItinerary({
         ))}
 
         {/* Additional Information */}
-        <div className="mt-6 sm:mt-8 border-t pt-4 sm:pt-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-filipino-deepTeal mb-3 sm:mb-4">Additional Information</h2>
+        <div className="mt-6 border-t pt-4">
+          <h2 className="text-lg font-semibold text-filipino-deepTeal mb-3">Additional Information</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <Card className="p-3 sm:p-4">
-              <h3 className="font-bold text-sm sm:text-base mb-2">Transportation</h3>
-              <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="p-3">
+              <h3 className="font-bold text-sm mb-2">Transportation</h3>
+              <ul className="list-disc pl-5 space-y-1 text-xs">
                 <li>Local transportation options vary by destination.</li>
                 <li>Consider ride-sharing apps or taxis for convenience.</li>
                 <li>Public transportation may offer a more authentic experience.</li>
               </ul>
             </Card>
             
-            <Card className="p-3 sm:p-4">
-              <h3 className="font-bold text-sm sm:text-base mb-2">Practical Tips</h3>
-              <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+            <Card className="p-3">
+              <h3 className="font-bold text-sm mb-2">Practical Tips</h3>
+              <ul className="list-disc pl-5 space-y-1 text-xs">
                 <li>Research local customs and etiquette before your trip.</li>
                 <li>Check weather conditions and pack accordingly.</li>
                 <li>Keep emergency contact information handy.</li>
@@ -236,8 +237,8 @@ export default function FormattedItinerary({
       {/* Map Dialog */}
       <Dialog open={showMap} onOpenChange={setShowMap}>
         <DialogContent className="sm:max-w-md max-w-[calc(100%-2rem)] p-0 overflow-hidden">
-          <DialogHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
-            <DialogTitle className="text-base sm:text-lg">
+          <DialogHeader className="p-3 sm:p-4 pb-2">
+            <DialogTitle className="text-base break-words pr-6">
               {selectedPlace?.name}
             </DialogTitle>
           </DialogHeader>
