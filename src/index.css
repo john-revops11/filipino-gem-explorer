@@ -102,23 +102,23 @@
   }
 
   h1 {
-    @apply text-3xl md:text-4xl;
+    @apply text-2xl sm:text-3xl md:text-4xl;
   }
 
   h2 {
-    @apply text-2xl md:text-3xl;
+    @apply text-xl sm:text-2xl md:text-3xl;
   }
 
   h3 {
-    @apply text-xl md:text-2xl;
+    @apply text-lg sm:text-xl md:text-2xl;
   }
 
   h4 {
-    @apply text-lg md:text-xl;
+    @apply text-base sm:text-lg md:text-xl;
   }
 
   p {
-    @apply leading-relaxed;
+    @apply leading-relaxed text-sm sm:text-base;
   }
 
   .title-font {
@@ -131,6 +131,68 @@
 }
 
 @layer components {
+  /* Card component consistency */
+  .app-card {
+    @apply rounded-lg border bg-white shadow-sm overflow-hidden hover:shadow-md transition-shadow;
+  }
+  
+  /* Button sizing consistency */
+  .app-btn {
+    @apply h-8 sm:h-10 text-xs sm:text-sm font-medium rounded-md px-2 sm:px-4 py-1 sm:py-2;
+  }
+  
+  /* Section spacing consistency */
+  .section-container {
+    @apply p-2 sm:p-4 md:p-6;
+  }
+  
+  .section-title {
+    @apply text-base sm:text-lg md:text-xl font-bold text-filipino-deepTeal mb-2 sm:mb-3;
+  }
+  
+  /* Image container consistency */
+  .img-container {
+    @apply relative overflow-hidden rounded-md;
+  }
+  
+  /* Header styling consistency */
+  .page-header {
+    @apply bg-filipino-teal text-white px-3 py-4 sm:px-6 sm:py-5 rounded-t-lg;
+  }
+  
+  /* Text truncation classes */
+  .truncate-1 {
+    @apply line-clamp-1;
+  }
+  
+  .truncate-2 {
+    @apply line-clamp-2;
+  }
+  
+  .truncate-3 {
+    @apply line-clamp-3;
+  }
+  
+  /* List styling consistency */
+  .list-container {
+    @apply space-y-3 sm:space-y-4;
+  }
+  
+  /* Dialog consistency */
+  .app-dialog {
+    @apply sm:max-w-md max-w-[calc(100%-2rem)] p-0 overflow-hidden;
+  }
+  
+  /* Icon sizing consistency */
+  .icon-sm {
+    @apply h-3.5 w-3.5 sm:h-4 sm:w-4;
+  }
+  
+  .icon-md {
+    @apply h-4 w-4 sm:h-5 sm:w-5;
+  }
+  
+  /* Filipino pattern styles */
   .filipino-pattern {
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233E5902' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     background-color: white;
@@ -147,9 +209,5 @@
 
   .gradient-overlay {
     @apply absolute inset-0 bg-gradient-to-b from-transparent to-black/80;
-  }
-
-  .section-title {
-    @apply text-2xl font-bold text-filipino-darkGray;
   }
 }
