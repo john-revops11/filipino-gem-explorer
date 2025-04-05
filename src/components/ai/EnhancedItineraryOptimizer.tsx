@@ -5,6 +5,7 @@ import { ItineraryForm } from "@/components/ai/itinerary/ItineraryForm";
 import { ItineraryResult } from "@/components/ai/itinerary/ItineraryResult";
 import { AuthPrompt } from "@/components/auth/AuthPrompt";
 import { generateItinerary } from "@/services/gemini-api";
+import { getFallbackItinerary } from "@/utils/fallback-content";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 
@@ -28,6 +29,7 @@ export function EnhancedItineraryOptimizer({
   const [isSaving, setIsSaving] = useState(false);
   const [currentPreferences, setCurrentPreferences] = useState(initialItinerary);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const handleGenerateItinerary = async () => {
     if (!user) {
@@ -36,6 +38,7 @@ export function EnhancedItineraryOptimizer({
     }
     
     setIsGenerating(true);
+    setGenerationError(null);
     
     try {
       // Format the date if it exists
@@ -49,29 +52,40 @@ export function EnhancedItineraryOptimizer({
         dateInfo
       );
       
+      // Validate the response
+      if (!formattedItinerary || formattedItinerary.trim() === '') {
+        throw new Error("Empty response received from API");
+      }
+      
       setGeneratedItinerary(formattedItinerary);
+      console.log("Successfully generated itinerary");
+      
     } catch (error) {
       console.error("Error generating itinerary:", error);
-      toast.error("Failed to generate itinerary. Please try again.");
+      setGenerationError(error instanceof Error ? error.message : 'Unknown error occurred');
+      toast.error("Could not generate a personalized itinerary", {
+        description: "Using a general template instead. You can edit it to customize."
+      });
       
-      // Fallback to simpler itinerary if API fails
-      const fallbackItinerary = `
-## ${currentDays}-Day Itinerary for ${currentDestination}
-
-### Day 1
-- Morning: Breakfast at local café
-- Afternoon: City tour of ${currentDestination}
-- Evening: Dinner at beachfront restaurant
-
-### Day 2
-- Morning: Hiking in nearby mountains
-- Afternoon: Swimming and relaxation
-- Evening: Cultural show
-
-${startDate ? `\nTrip dates: ${format(startDate, 'MMMM d, yyyy')} to ${format(addDays(startDate, parseInt(currentDays)), 'MMMM d, yyyy')}` : ''}
-${currentPreferences ? `\nTailored for preferences: ${currentPreferences}` : ''}
-      `;
-      setGeneratedItinerary(fallbackItinerary);
+      // Use fallback itinerary
+      const fallbackItinerary = getFallbackItinerary(currentDestination, parseInt(currentDays) || 3);
+      
+      // Add date information if available
+      let enhancedFallback = fallbackItinerary;
+      if (startDate) {
+        const endDate = addDays(startDate, parseInt(currentDays) || 3);
+        const dateRange = `\n\n## Trip Dates\n* **Start Date**: ${format(startDate, 'MMMM d, yyyy')}\n* **End Date**: ${format(endDate, 'MMMM d, yyyy')}`;
+        enhancedFallback += dateRange;
+      }
+      
+      // Add preferences if available
+      if (currentPreferences && currentPreferences.trim() !== '') {
+        const preferencesNote = `\n\n## Travel Preferences\n* ${currentPreferences}`;
+        enhancedFallback += preferencesNote;
+      }
+      
+      setGeneratedItinerary(enhancedFallback);
+      
     } finally {
       setIsGenerating(false);
     }
@@ -113,6 +127,14 @@ ${currentPreferences ? `\nTailored for preferences: ${currentPreferences}` : ''}
         onGenerate={handleGenerateItinerary}
         isGenerating={isGenerating}
       />
+      
+      {generationError && (
+        <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-400 rounded">
+          <p className="text-sm text-red-700">
+            There was an error generating your personalized itinerary. Using a general template instead.
+          </p>
+        </div>
+      )}
       
       {generatedItinerary && (
         <ItineraryResult

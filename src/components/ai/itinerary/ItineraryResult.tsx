@@ -1,12 +1,12 @@
-
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bookmark, Edit, Save } from "lucide-react";
+import { Bookmark, Edit, Save, AlertTriangle } from "lucide-react";
 import databaseService, { Itinerary } from "@/services/database-service";
 import { auth } from "@/services/firebase";
 import { toast } from "sonner";
+import { getFallbackItinerary } from "@/utils/fallback-content";
 
 interface ItineraryResultProps {
   destination: string;
@@ -26,12 +26,61 @@ export function ItineraryResult({
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(itineraryContent);
   const [isSavingLocally, setIsSavingLocally] = useState(false);
+  const [renderError, setRenderError] = useState<string | null>(null);
+
+  const renderContent = useCallback(() => {
+    try {
+      if (!itineraryContent || itineraryContent.trim() === '') {
+        const fallbackContent = getFallbackItinerary(destination, parseInt(days));
+        return (
+          <div className="prose prose-sm max-w-none overflow-auto">
+            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-4">
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 text-amber-400 mr-2" />
+                <p className="text-amber-700 font-medium">Using fallback content</p>
+              </div>
+              <p className="text-amber-600 text-sm">
+                We couldn't generate a personalized itinerary. Here's a general template instead.
+              </p>
+            </div>
+            <div dangerouslySetInnerHTML={{ __html: fallbackContent }} />
+          </div>
+        );
+      }
+      
+      return (
+        <div 
+          className="prose prose-sm max-w-none overflow-auto"
+          dangerouslySetInnerHTML={{ __html: itineraryContent }}
+        />
+      );
+    } catch (error) {
+      console.error("Error rendering itinerary content:", error);
+      setRenderError(`Error rendering content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      return (
+        <div className="text-red-500 space-y-4">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-2" />
+            <p>There was an error rendering this content. You can view and edit it in plain text mode.</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsEditing(true)} 
+            className="mt-2"
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            View in Edit Mode
+          </Button>
+        </div>
+      );
+    }
+  }, [itineraryContent, destination, days]);
 
   const handleSaveEdit = () => {
     setIsEditing(false);
     setIsSavingLocally(true);
     
-    // You could implement a way to save edited content back to state
     setTimeout(() => {
       setIsSavingLocally(false);
       toast.success("Changes saved");
@@ -49,7 +98,6 @@ export function ItineraryResult({
       
       const currentTime = new Date().toISOString();
       
-      // Create itinerary object
       const itineraryData: Itinerary = {
         name: `${days}-Day Trip to ${destination}`,
         description: `Personalized ${days}-day itinerary for ${destination}`,
@@ -60,7 +108,7 @@ export function ItineraryResult({
         },
         content: editedContent || itineraryContent,
         tags: [],
-        userId_created: auth.currentUser.uid, // Using userId_created instead of created_by
+        userId_created: auth.currentUser.uid,
         is_public: true,
         created_at: currentTime,
         updated_at: currentTime,
@@ -74,33 +122,6 @@ export function ItineraryResult({
       toast.error("Failed to save itinerary");
     } finally {
       setIsSavingLocally(false);
-    }
-  };
-
-  // Safely render content - make sure we can handle any potential issues
-  const renderContent = () => {
-    try {
-      return (
-        <div 
-          className="prose prose-sm max-w-none overflow-auto"
-          dangerouslySetInnerHTML={{ __html: itineraryContent }}
-        />
-      );
-    } catch (error) {
-      console.error("Error rendering itinerary content:", error);
-      return (
-        <div className="text-red-500">
-          <p>There was an error rendering this content. You can view it in edit mode.</p>
-          <Button 
-            variant="outline" 
-            onClick={() => setIsEditing(true)} 
-            className="mt-2"
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            View in Edit Mode
-          </Button>
-        </div>
-      );
     }
   };
 
@@ -118,6 +139,11 @@ export function ItineraryResult({
             value={editedContent}
             onChange={(e) => setEditedContent(e.target.value)}
           />
+        ) : renderError ? (
+          <div className="text-red-500 p-4 border border-red-200 rounded-md">
+            <p className="font-medium mb-2">Error displaying itinerary</p>
+            <p className="text-sm">{renderError}</p>
+          </div>
         ) : (
           renderContent()
         )}
