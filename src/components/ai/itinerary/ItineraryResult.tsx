@@ -77,6 +77,33 @@ export function ItineraryResult({
     }
   };
 
+  // Safely render content - make sure we can handle any potential issues
+  const renderContent = () => {
+    try {
+      return (
+        <div 
+          className="prose prose-sm max-w-none overflow-auto"
+          dangerouslySetInnerHTML={{ __html: itineraryContent }}
+        />
+      );
+    } catch (error) {
+      console.error("Error rendering itinerary content:", error);
+      return (
+        <div className="text-red-500">
+          <p>There was an error rendering this content. You can view it in edit mode.</p>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsEditing(true)} 
+            className="mt-2"
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            View in Edit Mode
+          </Button>
+        </div>
+      );
+    }
+  };
+
   return (
     <Card className="mt-4">
       <CardHeader className="pb-2">
@@ -92,10 +119,7 @@ export function ItineraryResult({
             onChange={(e) => setEditedContent(e.target.value)}
           />
         ) : (
-          <div 
-            className="prose prose-sm max-w-none overflow-auto"
-            dangerouslySetInnerHTML={{ __html: itineraryContent }}
-          />
+          renderContent()
         )}
       </CardContent>
       <CardFooter className="flex justify-between">

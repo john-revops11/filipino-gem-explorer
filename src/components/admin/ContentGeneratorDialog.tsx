@@ -38,6 +38,13 @@ import {
   generateToursAndEvents
 } from "@/services/gemini-api";
 import { parseDestinations, generateFoodsForDestination } from "@/utils/content-parser";
+import { 
+  getFallbackItinerary, 
+  getFallbackDestinationProfile,
+  getFallbackFoodInfo,
+  getFallbackEventInfo,
+  getFallbackPlaceInfo
+} from "@/utils/fallback-content";
 
 type ContentType = "destination" | "place" | "food" | "itinerary" | "event";
 
@@ -158,28 +165,48 @@ export function ContentGeneratorDialog() {
   };
   
   const generateItineraries = async () => {
-    const itineraryData = await generateItinerary(
-      location,
-      parseInt(days),
-      `Travel style: ${travelStyle}. ${preferences}`
-    );
-    
-    await databaseService.addItinerary({
-      name: `${days}-Day ${location} Itinerary`,
-      description: `A ${travelStyle} ${days}-day itinerary for ${location}`,
-      days: parseInt(days),
-      location: { name: location },
-      content: itineraryData,
-      destinations: [location],
-      tags: [travelStyle.toLowerCase(), "generated"],
-      userId_created: "system",
-      is_public: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      createdAt: new Date().toISOString()
-    });
-    
-    queryClient.invalidateQueries({ queryKey: ["itineraries"] });
+    try {
+      console.log("Generating itinerary for:", location, days, travelStyle, preferences);
+      
+      let itineraryData: string;
+      try {
+        itineraryData = await generateItinerary(
+          location,
+          parseInt(days),
+          `Travel style: ${travelStyle}. ${preferences}`
+        );
+      } catch (error) {
+        console.warn("Failed to generate itinerary with API, using fallback content", error);
+        toast.warning("Using simplified itinerary due to generation issues");
+        itineraryData = getFallbackItinerary(location, parseInt(days));
+      }
+      
+      if (!itineraryData) {
+        throw new Error("No itinerary data was returned");
+      }
+      
+      console.log("Itinerary data received, saving to database");
+      
+      await databaseService.addItinerary({
+        name: `${days}-Day ${location} Itinerary`,
+        description: `A ${travelStyle} ${days}-day itinerary for ${location}`,
+        days: parseInt(days),
+        location: { name: location },
+        content: itineraryData,
+        destinations: [location],
+        tags: [travelStyle.toLowerCase(), "generated"],
+        userId_created: "system",
+        is_public: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["itineraries"] });
+    } catch (error) {
+      console.error("Error in generateItineraries:", error);
+      throw error;
+    }
   };
   
   const generateEvents = async () => {

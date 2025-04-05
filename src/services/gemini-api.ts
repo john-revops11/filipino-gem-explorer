@@ -10,6 +10,7 @@ export async function generateItinerary(
   dateInfo?: string
 ): Promise<string> {
   try {
+    console.log(`Generating itinerary for ${destination} for ${days} days`);
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     // Create a more detailed prompt incorporating travel dates if provided
@@ -34,19 +35,27 @@ export async function generateItinerary(
       The response should be comprehensive but concise, focusing on practical information.
     `;
 
+    console.log("Sending prompt to Gemini API");
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
+    
+    console.log("Received response from Gemini API, length:", text.length);
+    
+    if (!text || text.trim().length === 0) {
+      throw new Error("Received empty response from Gemini API");
+    }
 
-    // Convert markdown to HTML
     return text;
   } catch (error) {
     console.error("Error generating itinerary with Gemini:", error);
-    throw new Error("Failed to generate itinerary");
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate itinerary: ${error.message}`);
+    } else {
+      throw new Error("Failed to generate itinerary due to an unknown error");
+    }
   }
 }
-
-// Add these new functions that are being imported in various files
 
 export async function answerTravelQuestion(
   prompt: string
