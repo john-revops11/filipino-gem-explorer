@@ -22,7 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from "@/components/ui/tabs";
 import databaseService from "@/services/database-service";
 import { 
   generateTravelRecommendations, 
@@ -160,7 +165,7 @@ export function ContentGeneratorDialog() {
     );
     
     await databaseService.addItinerary({
-      title: `${days}-Day ${location} Itinerary`,
+      name: `${days}-Day ${location} Itinerary`,
       days: parseInt(days),
       location: { name: location },
       content: itineraryData,
