@@ -169,7 +169,6 @@ export function ContentGeneratorDialog() {
       days: parseInt(days),
       location: { name: location },
       content: itineraryData,
-      travelStyle: travelStyle,
       createdAt: new Date().toISOString()
     });
     
