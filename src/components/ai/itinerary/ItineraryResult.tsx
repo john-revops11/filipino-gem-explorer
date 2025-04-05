@@ -42,11 +42,18 @@ export function ItineraryResult({
       
       // If we want to use the formatted view
       if (useFormattedView) {
+        // Get travel dates from content if possible
+        let dateInfo = "";
+        const dateMatch = itineraryContent.match(/\(([A-Za-z]+\s+\d+(?:-\d+)?(?:,\s+\d{4})?)\)/);
+        if (dateMatch) {
+          dateInfo = dateMatch[1];
+        }
+        
         return (
           <FormattedItinerary
             title={`${days}-Day Itinerary for ${destination}`}
             destination={destination}
-            date={new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            date={dateInfo || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             rawContent={isEditing ? editedContent : itineraryContent}
           />
         );

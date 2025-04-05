@@ -1,3 +1,4 @@
+
 import databaseService, { Location } from "@/services/database-service";
 import { generateTravelRecommendations, generateFoodCuisineInfo } from "@/services/gemini-api";
 
@@ -257,13 +258,14 @@ export const parseItineraryContent = (content: string, destination: string) => {
   
   try {
     const lines = content.split('\n');
-    const sections = [];
-    let currentSection = null;
-    let currentPlace = null;
+    const extractedSections: any[] = [];
+    let currentSection: any = null;
+    let currentPlace: any = null;
     
     // Common patterns in itinerary content
     const sectionPatterns = [
       /^## (.+)/,                    // ## Day 1
+      /\*\*Day \d+[:\-–]?\s*(.+?)\*\*/i,  // **Day 1: Arrival...**
       /^Day \d+[:\-–]?\s*(.+)/i,     // Day 1: Exploring
       /^Morning|^Afternoon|^Evening|^Night/i,  // Morning section
       /^\*\*(.+?)\*\*/,               // **Section Title**
@@ -272,7 +274,8 @@ export const parseItineraryContent = (content: string, destination: string) => {
     
     const timePatterns = [
       /(\d{1,2}:\d{2}\s*(AM|PM))/i,   // 8:00 AM
-      /(\d{1,2}\s*(AM|PM))/i          // 8 AM
+      /(\d{1,2}\s*(AM|PM))/i,         // 8 AM
+      /\*\*(Morning|Afternoon|Evening):\*\*/i  // **Morning:**
     ];
     
     lines.forEach(line => {
@@ -284,7 +287,7 @@ export const parseItineraryContent = (content: string, destination: string) => {
       
       if (isSectionHeader) {
         if (currentSection && currentSection.places && currentSection.places.length > 0) {
-          sections.push(currentSection);
+          extractedSections.push(currentSection);
         }
         
         let sectionTitle = line
@@ -300,29 +303,49 @@ export const parseItineraryContent = (content: string, destination: string) => {
         };
       
       // Try to identify places with times
-      } else {
+      } else if (line.startsWith('*')) {
         let timeMatch = null;
         for (const pattern of timePatterns) {
           timeMatch = line.match(pattern);
           if (timeMatch) break;
         }
         
-        if (timeMatch && currentSection) {
-          const time = timeMatch[1];
+        const bulletMatch = line.match(/\*\s+(.*)/); // Match the bullet point content
+        
+        if (bulletMatch && currentSection) {
+          let placeLine = bulletMatch[1];
+          let time = "Flexible";
+          let placeName = placeLine;
+          
+          // Try to extract time
+          if (timeMatch) {
+            time = timeMatch[1];
+            // Remove the time from the place name
+            placeName = placeLine.replace(timeMatch[0], '').trim();
+          } else {
+            // Check if there's a time with a colon
+            const colonTimeMatch = placeLine.match(/(\d{1,2}:\d{2})/);
+            if (colonTimeMatch) {
+              time = colonTimeMatch[1];
+              placeName = placeLine.replace(colonTimeMatch[0], '').trim();
+            }
+          }
           
           // Extract place name - usually follows the time or bullets
-          let placeName = line
+          placeName = placeName
             .replace(/^\*\s+|\*\s+|\*\*|\*\*$|^-\s+/g, '')  // Remove bullets and stars
-            .replace(timeMatch[0], '')                      // Remove the time
             .replace(/:/g, '')                              // Remove colons
             .trim();
             
-          // If the place name starts with a verb like "Visit", remove it
-          placeName = placeName.replace(/^(Visit|Explore|Go to|Check out|Head to|Stop by)\s+/i, '');
+          // If the place name starts with a verb like "Visit", take the next part
+          const visitMatch = placeName.match(/^(Visit|Explore|Go to|Check out|Head to|Stop by|Arrive at)\s+(.+?)[\.,]/i);
+          if (visitMatch) {
+            placeName = visitMatch[2].trim();
+          }
           
-          // Clean up the name if it's too long - take the first part
+          // Extract the first sentence if the place name is too long
           if (placeName.length > 60) {
-            const parts = placeName.split(':');
+            const parts = placeName.split('.');
             if (parts.length > 1) {
               placeName = parts[0].trim();
             } else {
@@ -331,25 +354,35 @@ export const parseItineraryContent = (content: string, destination: string) => {
           }
           
           if (placeName && placeName.length > 1) {
+            // Extract entrance fee if mentioned
+            let entranceFee = "";
+            if (placeLine.match(/(Entrance Fee|Cost|Price|Fee)[:\s]+([\₱\$\€]?\s*\d+[\-\–]?\d*)/i)) {
+              const feeMatch = placeLine.match(/([\₱\$\€]?\s*\d+[\-\–]?\d*)/i);
+              if (feeMatch) {
+                entranceFee = feeMatch[0];
+              }
+            }
+            
             currentPlace = {
               name: placeName,
               time: time,
-              description: "",
+              description: placeLine.replace(placeName, '').trim(),
+              entranceFee: entranceFee,
               imageUrl: `https://source.unsplash.com/featured/?${encodeURIComponent(placeName + "," + destination)}`
             };
             currentSection.places.push(currentPlace);
           }
+        }
+      
+      // Add description to the current place
+      } else if (currentPlace && line && !line.startsWith('#') && !line.startsWith('*')) {
+        currentPlace.description += (currentPlace.description ? " " : "") + line;
         
-        // Add description to the current place
-        } else if (currentPlace && line && !line.startsWith('#') && !line.startsWith('*')) {
-          currentPlace.description += (currentPlace.description ? " " : "") + line;
-          
-          // Try to extract entrance fee if mentioned
-          if (line.match(/entrance fee|cost|price|fee/i)) {
-            const feeMatch = line.match(/[\₱\$\€]?\s*\d+[\-\–]?\d*/i);
-            if (feeMatch) {
-              currentPlace.entranceFee = feeMatch[0];
-            }
+        // Try to extract entrance fee if mentioned
+        if (line.match(/entrance fee|cost|price|fee/i)) {
+          const feeMatch = line.match(/[\₱\$\€]?\s*\d+[\-\–]?\d*/i);
+          if (feeMatch) {
+            currentPlace.entranceFee = feeMatch[0];
           }
         }
       }
@@ -357,11 +390,11 @@ export const parseItineraryContent = (content: string, destination: string) => {
     
     // Add the last section if it exists
     if (currentSection && currentSection.places && currentSection.places.length > 0) {
-      sections.push(currentSection);
+      extractedSections.push(currentSection);
     }
     
     // If no sections were created but we have content, create a default section
-    if (sections.length === 0 && content.length > 0) {
+    if (extractedSections.length === 0 && content.length > 0) {
       return {
         title: `${destination} Highlights`,
         sections: [{
@@ -379,7 +412,7 @@ export const parseItineraryContent = (content: string, destination: string) => {
     
     return {
       title: `${destination} Itinerary`,
-      sections: sections
+      sections: extractedSections
     };
   } catch (error) {
     console.error("Error parsing itinerary content:", error);
