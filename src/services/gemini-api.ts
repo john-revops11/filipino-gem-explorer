@@ -12,7 +12,8 @@ export async function generateItinerary(
 ): Promise<string> {
   try {
     console.log(`Generating itinerary for ${destination} for ${days} days`);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Update: Use gemini-1.5-pro instead of gemini-pro
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     // Create a more detailed prompt incorporating travel dates if provided
     const dateContext = dateInfo ? 
@@ -62,7 +63,8 @@ export async function answerTravelQuestion(
   prompt: string
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Update: Use gemini-1.5-pro instead of gemini-pro
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
@@ -83,7 +85,8 @@ export async function generateTravelRecommendations(
   options: { location?: string, preferences?: string }
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Update: Use gemini-1.5-pro instead of gemini-pro
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `
       Provide travel recommendations for ${options.location || "Philippines"}.
@@ -124,7 +127,8 @@ export async function generatePhilippinesDestinationProfile(
   options: { location: string, region?: string, description?: string }
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Update: Use gemini-1.5-pro instead of gemini-pro
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `
       Generate a detailed profile for ${options.location} in the Philippines.
@@ -160,7 +164,8 @@ export async function generatePlaceDetails(
   options: { location: string, placeType: string, description?: string }
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Update: Use gemini-1.5-pro instead of gemini-pro
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `
       Generate detailed information about ${options.placeType} places in ${options.location}, Philippines.
@@ -195,7 +200,8 @@ export async function generateFoodCuisineInfo(
   options: { location: string, cuisine?: string }
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Update: Use gemini-1.5-pro instead of gemini-pro
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `
       Generate information about ${options.cuisine || "local"} cuisine in ${options.location}, Philippines.
@@ -229,7 +235,8 @@ export async function generateToursAndEvents(
   options: { location: string, eventType: string, date?: string, description?: string }
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Update: Use gemini-1.5-pro instead of gemini-pro
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     
     const prompt = `
       Generate information about ${options.eventType} in ${options.location}, Philippines.

@@ -36,6 +36,16 @@ export function EnhancedItineraryOptimizer({
       return;
     }
     
+    if (!currentDestination) {
+      toast.error("Please enter a destination");
+      return;
+    }
+    
+    if (!currentDays || parseInt(currentDays) < 1) {
+      toast.error("Please enter a valid number of days");
+      return;
+    }
+    
     setIsGenerating(true);
     setGenerationError(null);
     
@@ -113,6 +123,9 @@ export function EnhancedItineraryOptimizer({
         <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-400 rounded">
           <p className="text-sm text-red-700">
             There was an error generating your itinerary. Please try again or modify your request.
+          </p>
+          <p className="text-xs text-red-500 mt-1">
+            Error details: {generationError}
           </p>
         </div>
       )}
