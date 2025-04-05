@@ -1,8 +1,11 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .logo {
@@ -35,8 +38,30 @@
 
 .card {
   padding: 2em;
+  overflow: hidden;
 }
 
 .read-the-docs {
   color: #888;
+}
+
+/* Text containment utilities */
+.text-contained {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Flex container with text overflow protection */
+.flex-container-safe {
+  display: flex;
+  min-width: 0;
+}
+
+/* Prevent long words from breaking layout */
+.break-long-words {
+  word-break: break-word;
 }

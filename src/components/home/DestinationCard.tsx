@@ -38,9 +38,9 @@ export function DestinationCard({
       />
       <div className="gradient-overlay" />
       
-      <div className="absolute bottom-0 left-0 p-4 text-white">
-        <h3 className="font-bold text-lg">{name}</h3>
-        <p className="text-sm text-white/80">{location}</p>
+      <div className="absolute bottom-0 left-0 p-4 text-white w-full">
+        <h3 className="font-bold text-lg line-clamp-1 break-words">{name}</h3>
+        <p className="text-sm text-white/80 line-clamp-1">{location}</p>
         
         {isHiddenGem && (
           <Badge className="mt-2 bg-filipino-teal text-white">
@@ -49,12 +49,12 @@ export function DestinationCard({
         )}
         
         {tags.length > 0 && size !== "sm" && (
-          <div className="flex mt-2 flex-wrap gap-1">
+          <div className="flex mt-2 flex-wrap gap-1 max-w-full">
             {tags.map((tag) => (
               <Badge
                 key={tag}
                 variant="secondary"
-                className="bg-white/20 text-white text-xs"
+                className="bg-white/20 text-white text-xs truncate max-w-[120px]"
               >
                 {tag}
               </Badge>

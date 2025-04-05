@@ -61,46 +61,46 @@ export function PlaceCard({
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
       
-      <div className="absolute top-2 left-2 flex flex-col gap-1">
+      <div className="absolute top-2 left-2 flex flex-col gap-1 max-w-[90%]">
         {type && (
-          <Badge className="bg-filipino-teal/70 text-white flex items-center gap-1 uppercase text-xs">
+          <Badge className="bg-filipino-teal/70 text-white flex items-center gap-1 uppercase text-xs truncate">
             {getIcon()}
-            {type.replace("_", " ")}
+            <span className="truncate">{type.replace("_", " ")}</span>
           </Badge>
         )}
         
         {is_hidden_gem && (
-          <Badge className="bg-filipino-vibrantGreen/70 text-white flex items-center gap-1 uppercase text-xs">
-            <Gem className="h-4 w-4 text-white" />
-            Hidden Gem
+          <Badge className="bg-filipino-vibrantGreen/70 text-white flex items-center gap-1 uppercase text-xs truncate">
+            <Gem className="h-4 w-4 text-white flex-shrink-0" />
+            <span className="truncate">Hidden Gem</span>
           </Badge>
         )}
         
         {is_local_business && (
-          <Badge className="bg-filipino-terracotta/70 text-white flex items-center gap-1 uppercase text-xs">
-            <Store className="h-4 w-4 text-white" />
-            Local Business
+          <Badge className="bg-filipino-terracotta/70 text-white flex items-center gap-1 uppercase text-xs truncate">
+            <Store className="h-4 w-4 text-white flex-shrink-0" />
+            <span className="truncate">Local Business</span>
           </Badge>
         )}
       </div>
       
-      <div className="absolute bottom-0 left-0 p-4 text-white">
-        <h3 className="font-bold text-lg">{name}</h3>
-        <p className="text-sm text-white/80 mb-2">{location}</p>
+      <div className="absolute bottom-0 left-0 p-4 text-white w-full">
+        <h3 className="font-bold text-lg line-clamp-1 break-words">{name}</h3>
+        <p className="text-sm text-white/80 mb-2 line-clamp-1">{location}</p>
         
         {price_range && (
-          <Badge variant="outline" className="border-white/40 text-white text-xs">
+          <Badge variant="outline" className="border-white/40 text-white text-xs truncate max-w-[90%]">
             {price_range}
           </Badge>
         )}
         
         {tags.length > 0 && size !== "sm" && (
-          <div className="flex mt-2 flex-wrap gap-1">
+          <div className="flex mt-2 flex-wrap gap-1 max-w-full">
             {tags.slice(0, 3).map((tag) => (
               <Badge
                 key={tag}
                 variant="secondary"
-                className="bg-white/20 text-white text-xs"
+                className="bg-white/20 text-white text-xs truncate max-w-[100px]"
               >
                 {tag}
               </Badge>
