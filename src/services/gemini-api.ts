@@ -1,8 +1,7 @@
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Access your API key as an environment variable (for security reasons)
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "");
+// Access your API key (directly using the provided key)
+const genAI = new GoogleGenerativeAI("AIzaSyCxILwyPFK5D8DrD7T0hJHs2ieV-SpDfZU");
 
 export async function generateItinerary(
   destination: string,
