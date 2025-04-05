@@ -1,4 +1,3 @@
-
 import databaseService, { Location } from "@/services/database-service";
 import { generateTravelRecommendations, generateFoodCuisineInfo } from "@/services/gemini-api";
 
@@ -28,6 +27,7 @@ export const parseDestinations = (text: string, count = 3) => {
     // Not JSON, proceed with text parsing
   }
   
+  // Simple parsing logic - real implementation would be more robust
   const destinations = [];
   const regions = {
     "Luzon": ["Manila", "Baguio", "Batangas", "Tagaytay", "Vigan", "Palawan", "Batanes", "Quezon"],
@@ -243,5 +243,149 @@ export const parseEvents = (text: string, count = 3) => {
     }
     
     return events;
+  }
+};
+
+// New helper function to parse itinerary content into structured format
+export const parseItineraryContent = (content: string, destination: string) => {
+  if (!content || content.trim() === '') {
+    return {
+      title: `${destination} Itinerary`,
+      sections: []
+    };
+  }
+  
+  try {
+    const lines = content.split('\n');
+    const sections = [];
+    let currentSection = null;
+    let currentPlace = null;
+    
+    // Common patterns in itinerary content
+    const sectionPatterns = [
+      /^## (.+)/,                    // ## Day 1
+      /^Day \d+[:\-–]?\s*(.+)/i,     // Day 1: Exploring
+      /^Morning|^Afternoon|^Evening|^Night/i,  // Morning section
+      /^\*\*(.+?)\*\*/,               // **Section Title**
+      /^\d+[:.]\s+Day \d+/            // 1. Day 1
+    ];
+    
+    const timePatterns = [
+      /(\d{1,2}:\d{2}\s*(AM|PM))/i,   // 8:00 AM
+      /(\d{1,2}\s*(AM|PM))/i          // 8 AM
+    ];
+    
+    lines.forEach(line => {
+      line = line.trim();
+      if (!line) return;
+      
+      // Try to identify section headers
+      const isSectionHeader = sectionPatterns.some(pattern => pattern.test(line));
+      
+      if (isSectionHeader) {
+        if (currentSection && currentSection.places && currentSection.places.length > 0) {
+          sections.push(currentSection);
+        }
+        
+        let sectionTitle = line
+          .replace(/^##\s+/, '')
+          .replace(/^\*\*|\*\*$/g, '')
+          .replace(/^\d+[:.]\s+/, '')
+          .trim();
+        
+        currentSection = {
+          title: sectionTitle,
+          description: "Explore and enjoy the local attractions",
+          places: []
+        };
+      
+      // Try to identify places with times
+      } else {
+        let timeMatch = null;
+        for (const pattern of timePatterns) {
+          timeMatch = line.match(pattern);
+          if (timeMatch) break;
+        }
+        
+        if (timeMatch && currentSection) {
+          const time = timeMatch[1];
+          
+          // Extract place name - usually follows the time or bullets
+          let placeName = line
+            .replace(/^\*\s+|\*\s+|\*\*|\*\*$|^-\s+/g, '')  // Remove bullets and stars
+            .replace(timeMatch[0], '')                      // Remove the time
+            .replace(/:/g, '')                              // Remove colons
+            .trim();
+            
+          // If the place name starts with a verb like "Visit", remove it
+          placeName = placeName.replace(/^(Visit|Explore|Go to|Check out|Head to|Stop by)\s+/i, '');
+          
+          // Clean up the name if it's too long - take the first part
+          if (placeName.length > 60) {
+            const parts = placeName.split(':');
+            if (parts.length > 1) {
+              placeName = parts[0].trim();
+            } else {
+              placeName = placeName.substring(0, 60) + '...';
+            }
+          }
+          
+          if (placeName && placeName.length > 1) {
+            currentPlace = {
+              name: placeName,
+              time: time,
+              description: "",
+              imageUrl: `https://source.unsplash.com/featured/?${encodeURIComponent(placeName + "," + destination)}`
+            };
+            currentSection.places.push(currentPlace);
+          }
+        
+        // Add description to the current place
+        } else if (currentPlace && line && !line.startsWith('#') && !line.startsWith('*')) {
+          currentPlace.description += (currentPlace.description ? " " : "") + line;
+          
+          // Try to extract entrance fee if mentioned
+          if (line.match(/entrance fee|cost|price|fee/i)) {
+            const feeMatch = line.match(/[\₱\$\€]?\s*\d+[\-\–]?\d*/i);
+            if (feeMatch) {
+              currentPlace.entranceFee = feeMatch[0];
+            }
+          }
+        }
+      }
+    });
+    
+    // Add the last section if it exists
+    if (currentSection && currentSection.places && currentSection.places.length > 0) {
+      sections.push(currentSection);
+    }
+    
+    // If no sections were created but we have content, create a default section
+    if (sections.length === 0 && content.length > 0) {
+      return {
+        title: `${destination} Highlights`,
+        sections: [{
+          title: `${destination} Highlights`,
+          description: "Key attractions and experiences",
+          places: [{
+            name: destination,
+            time: "Flexible",
+            description: content.substring(0, 200) + "...",
+            imageUrl: `https://source.unsplash.com/featured/?${encodeURIComponent(destination + ",travel")}`
+          }]
+        }]
+      };
+    }
+    
+    return {
+      title: `${destination} Itinerary`,
+      sections: sections
+    };
+  } catch (error) {
+    console.error("Error parsing itinerary content:", error);
+    return {
+      title: `${destination} Itinerary`,
+      sections: []
+    };
   }
 };

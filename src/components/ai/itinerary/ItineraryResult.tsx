@@ -1,8 +1,9 @@
+
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bookmark, Edit, Save, AlertTriangle } from "lucide-react";
+import { Bookmark, Edit, Save, AlertTriangle, Eye, Code } from "lucide-react";
 import databaseService, { Itinerary } from "@/services/database-service";
 import { auth } from "@/services/firebase";
 import { toast } from "sonner";
@@ -45,15 +46,16 @@ export function ItineraryResult({
           <FormattedItinerary
             title={`${days}-Day Itinerary for ${destination}`}
             destination={destination}
-            rawContent={itineraryContent}
+            date={new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            rawContent={isEditing ? editedContent : itineraryContent}
           />
         );
       }
       
       return (
         <div 
-          className="prose prose-sm max-w-none overflow-auto"
-          dangerouslySetInnerHTML={{ __html: itineraryContent }}
+          className="prose prose-sm max-w-none overflow-auto p-4"
+          dangerouslySetInnerHTML={{ __html: isEditing ? editedContent : itineraryContent }}
         />
       );
     } catch (error) {
@@ -77,7 +79,7 @@ export function ItineraryResult({
         </div>
       );
     }
-  }, [itineraryContent, destination, days, useFormattedView]);
+  }, [itineraryContent, editedContent, isEditing, destination, days, useFormattedView]);
 
   const handleSaveEdit = () => {
     setIsEditing(false);
@@ -140,9 +142,19 @@ export function ItineraryResult({
             variant="outline" 
             size="sm" 
             onClick={toggleViewMode}
-            className="text-xs"
+            className="text-xs flex items-center gap-1"
           >
-            {useFormattedView ? "Switch to Standard View" : "Switch to Enhanced View"}
+            {useFormattedView ? (
+              <>
+                <Code className="h-4 w-4" />
+                <span>Switch to Standard View</span>
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" />
+                <span>Switch to Enhanced View</span>
+              </>
+            )}
           </Button>
         </CardTitle>
       </CardHeader>
